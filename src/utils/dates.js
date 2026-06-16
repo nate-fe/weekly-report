@@ -61,6 +61,32 @@ function sundayOf(dateStr) {
   return d
 }
 
+/** 날짜 문자열에 일수 더하기 */
+export function addDays(dateStr, days) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const date = new Date(y, m - 1, d)
+  date.setDate(date.getDate() + days)
+  return fmt(date)
+}
+
+/** 주차 사이드바 표시: 전주 일요일 ~ 이번주 토요일 (인자: 해당 주 월요일) */
+export function weekSidebarRange(weekMonday) {
+  return {
+    from: addDays(weekMonday, -1),
+    to: addDays(weekMonday, 5),
+  }
+}
+
+/** "M/D ~ M/D" (주차 목록용) */
+export function fmtWeekSidebarRange(weekMonday) {
+  const { from, to } = weekSidebarRange(weekMonday)
+  const md = s => {
+    const [, m, d] = s.split('-')
+    return `${+m}/${+d}`
+  }
+  return `${md(from)} ~ ${md(to)}`
+}
+
 /**
  * 해당 월에 걸쳐 있는 모든 주 반환
  * (월요일 기준, 월과 겹치는 주 전부 포함)

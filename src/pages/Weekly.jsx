@@ -23,6 +23,7 @@ import {
   today,
   weekKey,
   prevWeekKey,
+  fmtWeekSidebarRange,
 } from '../utils/dates'
 import { exportWeeklyExcel } from '../utils/excel'
 import {
@@ -98,6 +99,8 @@ export default function Weekly() {
   const [prevImportWeekKey, setPrevImportWeekKey] = useState('')
   const [listPanelWidth, setListPanelWidth] = useState(readListPanelWidth)
   const splitRef = useRef(null)
+  const listPanelInnerRef = useRef(null)
+  const scrollListAfterAddRef = useRef(false)
   const listPanelWidthRef = useRef(listPanelWidth)
   const resizingRef = useRef(false)
   const [prevImportTasks, setPrevImportTasks] = useState([])
@@ -154,6 +157,16 @@ export default function Weekly() {
       document.body.classList.remove('weekly-resizing')
     }
   }, [])
+
+  useEffect(() => {
+    if (!scrollListAfterAddRef.current) return
+    scrollListAfterAddRef.current = false
+    const el = listPanelInnerRef.current
+    if (!el) return
+    requestAnimationFrame(() => {
+      el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' })
+    })
+  }, [record?.tasks?.length])
 
   const showToast = (msg, isErr = false) => {
     setToast({ msg, err: isErr })
@@ -450,6 +463,7 @@ export default function Weekly() {
     updateTasks(tasks => [...tasks, t])
     setEditingTaskIds(prev => new Set([...prev, t.id]))
     setDraftTaskIds(prev => new Set([...prev, t.id]))
+    scrollListAfterAddRef.current = true
   }
 
   const openPrevWeekImport = async () => {
@@ -741,7 +755,7 @@ export default function Weekly() {
                   )}
                 </div>
                 <div className="week-item-range">
-                  {week.from.slice(5).replace('-', '/')} ~ {week.to.slice(5).replace('-', '/')}
+                  {fmtWeekSidebarRange(week.from)}
                 </div>
               </div>
             ))}
@@ -834,7 +848,7 @@ export default function Weekly() {
                 className="weekly-list-panel"
                 style={{ width: listPanelWidth }}
               >
-                <div className="weekly-list-panel-inner" key={activeMemberTab}>
+                <div className="weekly-list-panel-inner" key={activeMemberTab} ref={listPanelInnerRef}>
                   <div className="form-section-header weekly-list-header">
                     <div className="form-section-header-left">
                       <span className="form-section-title">업무 목록</span>
