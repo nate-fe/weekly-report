@@ -80,13 +80,12 @@ export default function WeeklyCalendar({
         <div className="gcal-toolbar-left">
           <button type="button" className="gcal-nav-btn" onClick={prevMonth} aria-label="이전 달">‹</button>
           <button type="button" className="gcal-nav-btn" onClick={nextMonth} aria-label="다음 달">›</button>
-          <h3 className="gcal-title">{year}년 {month}월</h3>
-        </div>
-        <div className="gcal-legend">
-          <span className="gcal-legend-item"><i className="tone-last" />지난주</span>
-          <span className="gcal-legend-item"><i className="tone-curr" />이번주</span>
-          <span className="gcal-legend-item"><i className="tone-next" />다음주</span>
-          <span className="gcal-legend-item"><i className="tone-report" />선택 주차(일~토)</span>
+          <div className="gcal-title-wrap">
+            <h3 className="gcal-title">{year}년 {month}월</h3>
+            <span className="gcal-title-hint">
+              날짜를 클릭하면 팀원별 일일 업무를 확인할 수 있습니다
+            </span>
+          </div>
         </div>
       </div>
 

@@ -117,6 +117,33 @@ export function formatTaskDisplayName(task) {
   return name || composeTaskName(service, platforms, nameDetail) || ''
 }
 
+/** 달력 팝업·복사용 — [서비스명 PC/모바일] 텍스트 */
+export function formatPlatformParen(platforms) {
+  const plats = normalizePlatforms(platforms)
+  if (plats.length === 2) return 'PC/모바일'
+  if (plats.length === 1) return plats[0]
+  return ''
+}
+
+export function formatPlatformServiceLabel(service, platforms) {
+  const svc = (service || '').trim()
+  const plat = formatPlatformParen(platforms)
+  if (!svc && !plat) return ''
+  if (svc && plat) return `[${svc} ${plat}]`
+  if (svc) return `[${svc}]`
+  return `[${plat}]`
+}
+
+/** 클립보드 복사용 — [PC/모바일 서비스명] */
+export function formatPlatformServiceCopyLabel(service, platforms) {
+  const svc = (service || '').trim()
+  const plat = formatPlatformParen(platforms)
+  if (!svc && !plat) return ''
+  if (plat && svc) return `[${plat} ${svc}]`
+  if (plat) return `[${plat}]`
+  return `[${svc}]`
+}
+
 /** 플랫폼 토글 */
 export function togglePlatform(platforms, platform) {
   const current = normalizePlatforms(platforms)

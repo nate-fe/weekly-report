@@ -1,7 +1,7 @@
 import { fmt as toDateStr, today, normalizeDateStr } from './dates'
 import { normalizeMemberColor } from './members'
 import { workMetaForDate } from './weeklyTask'
-import { formatTaskDisplayName } from './nateServices'
+import { formatTaskDisplayName, normalizeTaskNameFields } from './nateServices'
 
 function parseDate(dateStr) {
   const [y, m, d] = dateStr.split('-').map(Number)
@@ -58,10 +58,15 @@ export function tasksToCalendarEvents(tasks, tabMembers = [], reportFrom = '', r
     const member = tabMembers.find(m => m.id === task.memberId)
     const assigneeName = member?.name || task.assignee?.trim() || '담당자 없음'
     const displayName = formatTaskDisplayName(task) || '(업무명 없음)'
+    const fields = normalizeTaskNameFields(task)
+    const taskTitle = fields.nameDetail?.trim() || ''
     const base = {
       taskId: task.id,
       weekKey: task.weekKey || '',
       taskName: displayName,
+      service: fields.service || '',
+      platforms: fields.platforms,
+      taskTitle,
       assignee: assigneeName,
       memberColor: normalizeMemberColor(member?.color),
       memberLabel: member?.label || '',

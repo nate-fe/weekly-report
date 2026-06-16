@@ -1,6 +1,7 @@
 import { fmtKo } from '../utils/dates'
 import { fmtRangeShort } from '../utils/weeklyTask'
 import { labelClass } from '../utils/members'
+import ServicePlatformLabel from './ServicePlatformLabel'
 
 export default function CalendarEventModal({ event, onClose }) {
   if (!event) return null
@@ -23,7 +24,15 @@ export default function CalendarEventModal({ event, onClose }) {
           <span className="member-tab-dot" style={{ background: event.memberColor }} />
           <div className="gcal-event-modal-heading">
             <h3 id="gcal-event-modal-title" className="gcal-event-modal-title">
-              {event.displayLabel}
+              <span className="gcal-event-assignee">{event.assignee}</span>
+              <span className="gcal-event-title-sep">:</span>
+              <ServicePlatformLabel
+                service={event.service}
+                platforms={event.platforms}
+              />
+              {event.taskTitle && (
+                <span className="gcal-event-task-title">{event.taskTitle}</span>
+              )}
             </h3>
             {event.memberLabel && (
               <span className={`member-label-badge sm ${labelClass(event.memberLabel)}`}>

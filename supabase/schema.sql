@@ -13,20 +13,7 @@ create table if not exists members (
   created_at  timestamptz not null default now()
 );
 
--- 2. 일일 업무
-create table if not exists daily_tasks (
-  id          text primary key,
-  date        date not null,
-  member_id   text references members(id) on delete set null,
-  title       text not null default '',
-  done        boolean not null default false,
-  memo        text not null default '',
-  order_index integer not null default 0,
-  created_at  timestamptz not null default now()
-);
-create index if not exists daily_tasks_date_member on daily_tasks(date, member_id);
-
--- 3. 주간 보고 헤더
+-- 2. 주간 보고 헤더
 create table if not exists weekly_records (
   week_key    text primary key,          -- 예: "2026-W24"
   from_date   date not null,
@@ -34,7 +21,7 @@ create table if not exists weekly_records (
   updated_at  timestamptz not null default now()
 );
 
--- 4. 주간 업무 항목
+-- 3. 주간 업무 항목
 create table if not exists weekly_tasks (
   id           text primary key,
   week_key     text not null references weekly_records(week_key) on delete cascade,
@@ -59,7 +46,7 @@ create table if not exists weekly_tasks (
   order_index  integer not null default 0
 );
 
--- 5. 주간 Todo
+-- 4. 주간 Todo
 create table if not exists weekly_todos (
   id          text primary key,
   week_key    text not null references weekly_records(week_key) on delete cascade,
@@ -68,7 +55,7 @@ create table if not exists weekly_todos (
   order_index integer not null default 0
 );
 
--- 6. 주간 업무 임시 저장
+-- 5. 주간 업무 임시 저장
 create table if not exists weekly_drafts (
   week_key    text primary key,
   from_date   date not null,
@@ -82,11 +69,10 @@ create table if not exists weekly_drafts (
 
 grant usage on schema public to anon, authenticated;
 grant all on table members        to anon, authenticated;
-grant all on table daily_tasks    to anon, authenticated;
 grant all on table weekly_records to anon, authenticated;
 grant all on table weekly_tasks   to anon, authenticated;
 grant all on table weekly_todos   to anon, authenticated;
-grant all on table weekly_drafts to anon, authenticated;
+grant all on table weekly_drafts  to anon, authenticated;
 
 -- 기존 RLS 정책 삭제 후 재생성 (재실행 시 "already exists" 에러 방지)
 do $$
@@ -97,7 +83,7 @@ begin
     from pg_policies
     where schemaname = 'public'
       and tablename in (
-        'members', 'daily_tasks', 'weekly_records', 'weekly_tasks', 'weekly_todos', 'weekly_drafts'
+        'members', 'weekly_records', 'weekly_tasks', 'weekly_todos', 'weekly_drafts'
       )
   ) loop
     execute format(
@@ -108,7 +94,6 @@ begin
 end $$;
 
 alter table members        enable row level security;
-alter table daily_tasks    enable row level security;
 alter table weekly_records enable row level security;
 alter table weekly_tasks   enable row level security;
 alter table weekly_todos   enable row level security;
@@ -116,10 +101,6 @@ alter table weekly_drafts  enable row level security;
 
 create policy "allow_all_members"
   on public.members for all to anon, authenticated
-  using (true) with check (true);
-
-create policy "allow_all_daily_tasks"
-  on public.daily_tasks for all to anon, authenticated
   using (true) with check (true);
 
 create policy "allow_all_weekly_records"
@@ -156,8 +137,7 @@ alter table members add column if not exists label text not null default 'FE개�
 alter table members add column if not exists deleted_at timestamptz;
 alter table weekly_tasks add column if not exists member_id text references members(id) on delete set null;
 
--- daily_tasks: 팀원 삭제 시 업무 기록 유지 (cascade → set null)
-alter table daily_tasks drop constraint if exists daily_tasks_member_id_fkey;
-alter table daily_tasks alter column member_id drop not null;
-alter table daily_tasks add constraint daily_tasks_member_id_fkey
+-- weekly_tasks: 팀원 삭제 시 업무 기록 유지
+alter table weekly_tasks drop constraint if exists weekly_tasks_member_id_fkey;
+alter table weekly_tasks add constraint weekly_tasks_member_id_fkey
   foreign key (member_id) references members(id) on delete set null;

@@ -21,6 +21,13 @@ export function today() {
   return fmt(new Date())
 }
 
+/** 오늘보다 이전 날짜인지 (지난 날은 편집 불가) */
+export function isPastDate(dateStr) {
+  const d = normalizeDateStr(dateStr)
+  if (!d) return false
+  return d < today()
+}
+
 /** "YYYY-MM-DD" → "YYYY년 M월 D일" */
 export function fmtKo(str) {
   if (!str) return ''

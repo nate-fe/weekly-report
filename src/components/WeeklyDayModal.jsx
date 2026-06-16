@@ -1,16 +1,31 @@
+import { useState } from 'react'
 import { fmtKo } from '../utils/dates'
-import { fmtRangeShort } from '../utils/weeklyTask'
-import { labelClass, normalizeMemberColor } from '../utils/members'
+import { dayEntriesForGroup, formatDayCopyText } from '../utils/weeklyDayFormat'
+import ServicePlatformLabel from './ServicePlatformLabel'
 
 export default function WeeklyDayModal({ dateStr, groups = [], onClose }) {
+  const [copied, setCopied] = useState(false)
+
   if (!dateStr) return null
 
   const totalItems = groups.reduce((n, g) => n + g.items.length, 0)
 
+  const handleCopy = async () => {
+    const text = formatDayCopyText(groups)
+    if (!text) return
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setCopied(false)
+    }
+  }
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
-        className="daily-day-modal weekly-day-modal"
+        className="daily-day-modal weekly-day-modal weekly-day-modal-type2"
         onClick={e => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -26,56 +41,49 @@ export default function WeeklyDayModal({ dateStr, groups = [], onClose }) {
         {groups.length === 0 ? (
           <p className="daily-day-modal-empty">해당 일자에 등록된 업무가 없습니다.</p>
         ) : (
-          <div className="daily-day-modal-body">
-            {groups.map(group => (
-              <section key={group.memberName} className="daily-day-member-block">
-                <div className="daily-day-member-header">
-                  <span
-                    className="member-tab-dot"
-                    style={{ background: normalizeMemberColor(group.memberColor) }}
-                  />
-                  <span className="daily-day-member-name">{group.memberName}</span>
-                  {group.memberLabel && (
-                    <span className={`member-label-badge sm ${labelClass(group.memberLabel)}`}>
-                      {group.memberLabel}
-                    </span>
-                  )}
-                  <span className="daily-day-member-cnt">{group.items.length}건</span>
-                </div>
-                <ul className="weekly-day-item-list">
-                  {group.items.map(item => {
-                    const meta = [fmtRangeShort(item.from, item.to), item.status]
-                      .filter(Boolean)
-                      .join(' · ')
-                    return (
-                      <li key={item.id} className="weekly-day-item">
-                        <div className={`weekly-day-item-badge tone-${item.tone}`}>
-                          {item.workLabel}
-                        </div>
-                        <div className="weekly-day-item-body">
-                          <div className="weekly-day-item-title-row">
-                            <p className="weekly-day-item-title">{item.taskName}</p>
-                            {item.weekKey && (
-                              <span className="weekly-day-item-week">{item.weekKey}</span>
-                            )}
-                          </div>
-                          {meta && <p className="weekly-day-item-meta">{meta}</p>}
-                          {item.content ? (
-                            <p className="weekly-day-item-content">{item.content}</p>
-                          ) : (
-                            <p className="weekly-day-item-content empty">상세 내용 없음</p>
+          <div className="daily-day-modal-body weekly-day-type2-body">
+            {groups.map(group => {
+              const entries = dayEntriesForGroup(group.items)
+              return (
+                <section key={group.memberName} className="weekly-day-type2-member">
+                  <h4 className="weekly-day-type2-member-name">{group.memberName}</h4>
+                  {entries.length === 0 ? (
+                    <p className="weekly-day-type2-empty">업무 없음</p>
+                  ) : (
+                    <div className="weekly-day-type2-tasks">
+                      {entries.map(entry => (
+                        <div key={entry.key} className="weekly-day-type2-task">
+                          {(entry.service || entry.platforms?.length > 0) && (
+                            <div className="weekly-day-type2-service">
+                              <ServicePlatformLabel
+                                service={entry.service}
+                                platforms={entry.platforms}
+                              />
+                            </div>
+                          )}
+                          {entry.title && (
+                            <p className="weekly-day-type2-title">{entry.title}</p>
                           )}
                         </div>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </section>
-            ))}
+                      ))}
+                    </div>
+                  )}
+                </section>
+              )
+            })}
           </div>
         )}
 
         <div className="daily-day-modal-actions">
+          {groups.length > 0 && (
+            <button
+              type="button"
+              className="btn-modal-copy"
+              onClick={handleCopy}
+            >
+              {copied ? '복사됨' : '텍스트 복사'}
+            </button>
+          )}
           <button type="button" className="btn-modal-ok" onClick={onClose}>닫기</button>
         </div>
       </div>

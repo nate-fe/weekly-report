@@ -27,45 +27,6 @@ function worksCell(works, key) {
 }
 
 /**
- * 일일 업무 엑셀 다운로드
- * @param {string}   date       "YYYY-MM-DD"
- * @param {Array}    members    [{ id, name }]
- * @param {Object}   dailyTasks { [memberId]: [{ title, done, memo }] }
- */
-export function exportDailyExcel(date, members, dailyTasks) {
-  const seen = new Set()
-  const uniqueMembers = members.filter(m => {
-    if (!m?.id || seen.has(m.id)) return false
-    seen.add(m.id)
-    return true
-  })
-
-  const rows = [headerRow(['팀원', '업무', '메모'])]
-
-  uniqueMembers.forEach(member => {
-    const tasks = dailyTasks[member.id] || []
-    if (tasks.length === 0) {
-      rows.push([member.name, '(등록된 업무 없음)', ''])
-    } else {
-      tasks.forEach((task, i) => {
-        rows.push([
-          i === 0 ? member.name : '',
-          task.title || '',
-          task.memo || '',
-        ])
-      })
-    }
-  })
-
-  const ws = XLSX.utils.aoa_to_sheet(rows)
-  ws['!cols'] = colWidths(14, 40, 36)
-
-  const wb = XLSX.utils.book_new()
-  XLSX.utils.book_append_sheet(wb, ws, `${date}`)
-  XLSX.writeFile(wb, `일일업무_${date}.xlsx`)
-}
-
-/**
  * 주간 보고 엑셀 다운로드
  * @param {string} weekKey  "YYYY-Www"
  * @param {Object} record   { from, to, tasks: [] }

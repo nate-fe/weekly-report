@@ -303,6 +303,16 @@ textarea:focus {
   border-radius: 10px;
 }
 
+.daily-readonly-badge {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  padding: 4px 10px;
+  background: #f4f5f7;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+
 .btn-excel {
   background: var(--green);
   color: var(--white);
@@ -699,6 +709,145 @@ textarea:focus {
 .weekly-day-item-content.empty {
   color: var(--muted);
   font-style: italic;
+}
+
+.weekly-day-modal-type2 {
+  max-width: 480px;
+}
+
+.weekly-day-type2-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.weekly-day-type2-member {
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.weekly-day-type2-member-name {
+  margin: 0 0 5px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.weekly-day-type2-tasks {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.weekly-day-type2-task {
+  padding-left: 2px;
+}
+
+.weekly-day-type2-service {
+  margin: 0 0 4px;
+}
+
+.weekly-day-type2-title {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-mid);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.weekly-day-type2-empty {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.daily-day-modal-actions .btn-modal-copy {
+  margin-right: auto;
+  background: var(--white);
+  color: var(--nate-dark);
+  border: 1px solid var(--nate-mid);
+  border-radius: var(--radius);
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.daily-day-modal-actions .btn-modal-copy:hover {
+  background: var(--nate-light);
+}
+
+/* ── 서비스·플랫폼 라벨 [서비스명(PC/모바일)] ── */
+.task-service-bracket {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nate-dark);
+  line-height: 1.5;
+}
+
+.task-service-name {
+  margin: 0 1px;
+}
+
+.task-service-platforms {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 4px;
+}
+
+.task-platform-badge-wrap {
+  display: inline-flex;
+  align-items: center;
+}
+
+.task-platform-slash {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0 1px;
+}
+
+.task-platform-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+}
+
+.task-platform-badge.pc {
+  background: #e8f0fe;
+  color: #1a56db;
+}
+
+.task-platform-badge.mobile {
+  background: #fef3e2;
+  color: #c25b00;
+}
+
+.gcal-event-assignee {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.gcal-event-title-sep {
+  margin: 0 4px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.gcal-event-task-title {
+  margin-left: 6px;
+  font-weight: 500;
+  color: var(--text-mid);
 }
 
 /* ── 전주 업무 불러오기 모달 ── */
@@ -1128,6 +1277,43 @@ textarea:focus {
 .task-item.done {
   background: #f8f9fa;
   border-color: var(--border);
+}
+.task-item-locked {
+  background: #fafbfc;
+  cursor: default;
+}
+.task-item-locked:hover { border-color: var(--border); }
+.task-item-locked .task-check {
+  cursor: not-allowed;
+  opacity: .55;
+}
+.task-item-locked .task-title-input:disabled,
+.task-item-locked .task-memo-input:disabled {
+  cursor: default;
+  opacity: 1;
+  color: var(--text);
+}
+.task-item-locked.task-item.done .task-title-input:disabled {
+  color: var(--muted);
+}
+
+.task-item-weekly .task-title-input {
+  color: var(--text);
+}
+
+.task-weekly-tag {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--nate-dark);
+  background: var(--nate-light);
+  padding: 1px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.task-weekly-tag-inline {
+  display: inline-block;
+  margin-bottom: 4px;
 }
 
 .task-check {
@@ -2399,7 +2585,7 @@ textarea:focus {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 14px;
+  margin-bottom: 6px;
 }
 
 .member-tab {
@@ -2484,7 +2670,6 @@ textarea:focus {
 .weekly-view-tabs {
   display: flex;
   gap: 4px;
-  margin-bottom: 14px;
   border-bottom: 1px solid var(--border);
   padding-bottom: 0;
 }
@@ -2566,11 +2751,27 @@ textarea:focus {
 }
 .gcal-nav-btn:hover { background: var(--bg); }
 
+.gcal-title-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 8px;
+}
+
 .gcal-title {
   font-size: 18px;
   font-weight: 500;
   color: var(--text);
-  margin: 0 8px;
+  margin: 0;
+}
+
+.gcal-title-hint {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 .gcal-legend {
@@ -2671,6 +2872,7 @@ textarea:focus {
   opacity: 1;
 }
 .gcal-day.today.in-selected { background: var(--nate-light); }
+.gcal-day.today.in-selected:hover { background: #d4f0e4; }
 
 .gcal-day.today:not(.in-selected) { background: #f8fbff; }
 .gcal-day.outside { background: #fafbfc; }
@@ -2805,6 +3007,10 @@ textarea:focus {
   color: var(--text);
   line-height: 1.4;
   margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 4px;
 }
 
 .gcal-event-modal-section {

@@ -1,5 +1,4 @@
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
-import Daily from './pages/Daily'
 import Weekly from './pages/Weekly'
 import Members from './pages/Members'
 
@@ -12,12 +11,6 @@ export default function App() {
           <h1 className="header-title">NATE UI팀 업무 보고</h1>
         </div>
         <nav className="header-nav">
-          <NavLink
-            to="/daily"
-            className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
-          >
-            일일 업무
-          </NavLink>
           <NavLink
             to="/weekly"
             className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
@@ -35,11 +28,11 @@ export default function App() {
 
       <main className="app-main">
         <Routes>
-          <Route path="/" element={<Navigate to="/daily" replace />} />
-          <Route path="/daily" element={<Daily />} />
+          <Route path="/" element={<Navigate to="/weekly" replace />} />
+          <Route path="/daily" element={<Navigate to="/weekly" replace />} />
           <Route path="/weekly" element={<Weekly />} />
           <Route path="/members" element={<Members />} />
-          <Route path="*" element={<Navigate to="/daily" replace />} />
+          <Route path="*" element={<Navigate to="/weekly" replace />} />
         </Routes>
       </main>
     </div>
