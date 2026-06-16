@@ -741,10 +741,6 @@ textarea:focus {
   gap: 10px;
 }
 
-.weekly-day-type2-task {
-  padding-left: 2px;
-}
-
 .weekly-day-type2-service {
   margin: 0 0 4px;
 }
@@ -779,12 +775,12 @@ textarea:focus {
   background: var(--nate-light);
 }
 
-/* ── 서비스·플랫폼 라벨 [서비스명(PC/모바일)] ── */
+/* ── 서비스·플랫폼 라벨 (뱃지 + 서비스명) ── */
 .task-service-bracket {
   display: inline-flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0;
+  gap: 4px 6px;
   font-size: 13px;
   font-weight: 600;
   color: var(--nate-dark);
@@ -792,14 +788,9 @@ textarea:focus {
 }
 
 .task-service-name {
-  margin: 0 1px;
-}
-
-.task-service-platforms {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  margin-left: 4px;
+  font-weight: 700;
+  color: var(--text);
+  font-size:15px;
 }
 
 .task-platform-badge-wrap {
@@ -1475,11 +1466,115 @@ textarea:focus {
 /* ── 주간 보고 폼 ── */
 .weekly-form {
   flex: 1;
-  overflow-y: auto;
+  min-width: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  padding: 24px;
-  gap: 20px;
+  padding: 20px 20px 0;
+  gap: 16px;
+}
+
+.weekly-split {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  margin: 0 -20px;
+  border-top: 1px solid var(--border);
+}
+
+.weekly-calendar-column {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  background: var(--bg);
+}
+
+.weekly-calendar-column .gcal {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 100%;
+}
+
+.weekly-split-handle {
+  width: 6px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  position: relative;
+  z-index: 3;
+  touch-action: none;
+}
+
+.weekly-split-handle::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  background: var(--border);
+  transition: width 0.12s, background 0.12s;
+}
+
+.weekly-split-handle:hover::after,
+.weekly-split-handle:active::after,
+body.weekly-resizing .weekly-split-handle::after {
+  width: 2px;
+  background: var(--nate);
+}
+
+body.weekly-resizing {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
+body.weekly-resizing * {
+  cursor: col-resize !important;
+}
+
+.weekly-list-panel {
+  flex-shrink: 0;
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.weekly-list-panel-inner {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.weekly-list-header {
+  margin-bottom: 0;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--white);
+  padding-top:16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.weekly-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.weekly-list-panel .wtask-card {
+  box-shadow: none;
+}
+
+.weekly-list-panel .form-section-header-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .weekly-form-header {
@@ -1865,6 +1960,33 @@ textarea:focus {
 .wtask-view-title strong {
   font-size: 14px;
   color: var(--text);
+}
+
+.wtask-view-name-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.wtask-view-name-row .task-platform-badge {
+  flex-shrink: 0;
+}
+
+.wtask-view-service {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.wtask-view-detail {
+  color: var(--text);
+}
+
+.wtask-view-empty {
+  font-size: 14px;
+  color: var(--muted);
 }
 
 .wtask-view-assignee {
@@ -2829,7 +2951,6 @@ textarea:focus {
   border-bottom: 1px solid var(--border);
   position: relative;
 }
-.gcal-week:last-child { border-bottom: none; }
 
 .gcal-days {
   display: grid;

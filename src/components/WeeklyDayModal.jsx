@@ -33,7 +33,7 @@ export default function WeeklyDayModal({ dateStr, groups = [], onClose }) {
       >
         <div className="daily-day-modal-header">
           <h3 id="weekly-day-modal-title" className="daily-day-modal-title">
-            {fmtKo(dateStr)}
+            {fmtKo(dateStr)} 일일 업무
           </h3>
           <span className="daily-day-modal-cnt">{totalItems}건</span>
         </div>

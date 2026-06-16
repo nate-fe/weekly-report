@@ -6,7 +6,6 @@ import { labelClass } from '../utils/members'
 import {
   NATE_SERVICES,
   NATE_PLATFORMS,
-  formatTaskDisplayName,
   normalizeTaskNameFields,
   patchTaskNameFields,
   togglePlatform,
@@ -32,14 +31,33 @@ export default function WeeklyTaskCard({
   const memberLabel = member?.label
   const works = task.works || []
   const grouped = groupWorksForView(works, reportFrom, reportTo)
-  const displayName = formatTaskDisplayName(task)
+  const fields = normalizeTaskNameFields(task)
+  const nameDetail = fields.nameDetail?.trim()
 
   if (!editing) {
     return (
       <div className="wtask-card wtask-card-view">
         <div className="wtask-view-header">
           <div className="wtask-view-title">
-            <strong>{displayName || '(업무명 없음)'}</strong>
+            <div className="wtask-view-name-row">
+              {fields.platforms.map(p => (
+                <span
+                  key={p}
+                  className={`task-platform-badge ${p === 'PC' ? 'pc' : 'mobile'}`}
+                >
+                  {p}
+                </span>
+              ))}
+              {fields.service && (
+                <span className="wtask-view-service">{fields.service}</span>
+              )}
+              {nameDetail && (
+                <span className="wtask-view-detail">{nameDetail}</span>
+              )}
+              {!fields.service && !nameDetail && !fields.platforms.length && (
+                <strong className="wtask-view-empty">(업무명 없음)</strong>
+              )}
+            </div>
             {showMember && (
               <span className="wtask-view-member">
                 <span className="member-tab-dot" style={{ background: member?.color || '#ccc' }} />
@@ -103,20 +121,7 @@ export default function WeeklyTaskCard({
         <div className="wtask-meta wtask-meta-name">
           <div className="wtask-name-row">
             <div className="wtask-name-fields">
-              <label className="wtask-name-field">
-                <span className="field-label">서비스</span>
-                <select
-                  className="wtask-service-select"
-                  value={task.service || ''}
-                  onChange={e => handleNameField({ service: e.target.value })}
-                >
-                  <option value="">선택</option>
-                  {NATE_SERVICES.map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </label>
-              <div className="wtask-name-field">
+              <div className="wtask-name-field wtask-name-field-platforms">
                 <span className="field-label">플랫폼</span>
                 <div className="platform-group">
                   {NATE_PLATFORMS.map(p => (
@@ -131,6 +136,19 @@ export default function WeeklyTaskCard({
                   ))}
                 </div>
               </div>
+              <label className="wtask-name-field">
+                <span className="field-label">서비스</span>
+                <select
+                  className="wtask-service-select"
+                  value={task.service || ''}
+                  onChange={e => handleNameField({ service: e.target.value })}
+                >
+                  <option value="">선택</option>
+                  {NATE_SERVICES.map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </label>
               <label className="wtask-name-field wtask-name-field-grow">
                 <span className="field-label">업무 내용</span>
                 <input

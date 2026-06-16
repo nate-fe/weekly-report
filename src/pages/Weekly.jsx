@@ -45,6 +45,24 @@ import PrevWeekImportModal from '../components/PrevWeekImportModal'
 
 const emptyRecord = (from, to) => ({ from, to, tasks: [] })
 
+const LIST_PANEL_WIDTH_KEY = 'weekly-list-panel-width'
+const LIST_PANEL_DEFAULT = 570
+const LIST_PANEL_MIN = 320
+const LIST_PANEL_CALENDAR_MIN = 280
+
+function readListPanelWidth() {
+  try {
+    const saved = Number(localStorage.getItem(LIST_PANEL_WIDTH_KEY))
+    if (Number.isFinite(saved) && saved >= LIST_PANEL_MIN) return saved
+  } catch { /* ignore */ }
+  return LIST_PANEL_DEFAULT
+}
+
+function clampListPanelWidth(width, containerWidth) {
+  const max = Math.max(LIST_PANEL_MIN, containerWidth - LIST_PANEL_CALENDAR_MIN)
+  return Math.min(max, Math.max(LIST_PANEL_MIN, width))
+}
+
 function recordsEqual(a, b) {
   if (!a || !b) return false
   return JSON.stringify({ from: a.from, to: a.to, tasks: a.tasks || [] })
@@ -71,7 +89,6 @@ export default function Weekly() {
   const [members, setMembers]               = useState([])
   const [deletedTabMembers, setDeletedTabMembers] = useState([])
   const [activeMemberTab, setActiveMemberTab] = useState('all')
-  const [viewMode, setViewMode] = useState('calendar')
   const [draftSavedAt, setDraftSavedAt] = useState(null)
   const [serverDraftAt, setServerDraftAt] = useState(null)
   const [draftSaving, setDraftSaving] = useState(false)
@@ -79,6 +96,10 @@ export default function Weekly() {
   const [prevImportOpen, setPrevImportOpen] = useState(false)
   const [prevImportLoading, setPrevImportLoading] = useState(false)
   const [prevImportWeekKey, setPrevImportWeekKey] = useState('')
+  const [listPanelWidth, setListPanelWidth] = useState(readListPanelWidth)
+  const splitRef = useRef(null)
+  const listPanelWidthRef = useRef(listPanelWidth)
+  const resizingRef = useRef(false)
   const [prevImportTasks, setPrevImportTasks] = useState([])
   const [allWeekTasks, setAllWeekTasks] = useState([])
   const recordRef = useRef(null)
@@ -98,6 +119,41 @@ export default function Weekly() {
   useEffect(() => {
     recordRef.current = record
   }, [record])
+
+  listPanelWidthRef.current = listPanelWidth
+
+  const startListPanelResize = (e) => {
+    if (e.button !== 0) return
+    e.preventDefault()
+    resizingRef.current = true
+    document.body.classList.add('weekly-resizing')
+  }
+
+  useEffect(() => {
+    const onMove = (e) => {
+      if (!resizingRef.current || !splitRef.current) return
+      const rect = splitRef.current.getBoundingClientRect()
+      const next = clampListPanelWidth(rect.right - e.clientX, rect.width)
+      setListPanelWidth(next)
+    }
+
+    const onUp = () => {
+      if (!resizingRef.current) return
+      resizingRef.current = false
+      document.body.classList.remove('weekly-resizing')
+      try {
+        localStorage.setItem(LIST_PANEL_WIDTH_KEY, String(listPanelWidthRef.current))
+      } catch { /* ignore */ }
+    }
+
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+      document.body.classList.remove('weekly-resizing')
+    }
+  }, [])
 
   const showToast = (msg, isErr = false) => {
     setToast({ msg, err: isErr })
@@ -212,7 +268,6 @@ export default function Weekly() {
     setDraftTaskIds(new Set())
     setDeletedTabMembers([])
     setActiveMemberTab('all')
-    setViewMode('calendar')
     setDraftSavedAt(null)
     setServerDraftAt(null)
     setPrevImportOpen(false)
@@ -561,7 +616,6 @@ export default function Weekly() {
     setEditingTaskIds(new Set())
     setDeleteTarget(null)
     setPrevImportOpen(false)
-    if (tabId !== 'all') setViewMode('list')
     setActiveMemberTab(tabId)
   }
 
@@ -751,28 +805,8 @@ export default function Weekly() {
               })}
             </div>
 
-            {/* 달력 / 목록 (전체 탭만) */}
-            {activeMemberTab === 'all' && (
-            <div className="weekly-view-tabs">
-              <button
-                type="button"
-                className={`weekly-view-tab ${viewMode === 'calendar' ? 'active' : ''}`}
-                onClick={() => setViewMode('calendar')}
-              >
-                달력
-              </button>
-              <button
-                type="button"
-                className={`weekly-view-tab ${viewMode === 'list' ? 'active' : ''}`}
-                onClick={() => setViewMode('list')}
-              >
-                목록
-              </button>
-            </div>
-            )}
-
-            {activeMemberTab === 'all' && viewMode === 'calendar' ? (
-              <div className="form-section">
+            <div className="weekly-split" ref={splitRef}>
+              <div className="weekly-calendar-column">
                 <WeeklyCalendar
                   tasks={allTabTasks}
                   tabMembers={tabMembers}
@@ -781,60 +815,79 @@ export default function Weekly() {
                   alwaysShow
                 />
               </div>
-            ) : (
-            <div className="form-section" key={activeMemberTab}>
-              <div className="form-section-header">
-                <div className="form-section-header-left">
-                  <span className="form-section-title">업무 목록</span>
-                  <span className="form-section-cnt">{taskCountLabel}</span>
+
+              <div
+                className="weekly-split-handle"
+                role="separator"
+                aria-orientation="vertical"
+                aria-label="달력과 업무 목록 너비 조절"
+                onMouseDown={startListPanelResize}
+              />
+
+              <aside
+                className="weekly-list-panel"
+                style={{ width: listPanelWidth }}
+              >
+                <div className="weekly-list-panel-inner" key={activeMemberTab}>
+                  <div className="form-section-header weekly-list-header">
+                    <div className="form-section-header-left">
+                      <span className="form-section-title">업무 목록</span>
+                      <span className="form-section-cnt">{taskCountLabel}</span>
+                    </div>
+                    {showSaveActions && saveHeaderActions}
+                  </div>
+
+                  {listTasks.length === 0 && (
+                    <div className="empty-tasks-sm">
+                      {activeMemberTab === 'all'
+                        ? (allTabTasks.length === 0
+                          ? '저장된 업무가 없습니다.'
+                          : '팀원 탭을 선택해 업무를 추가해 주세요.')
+                        : deletedTabMembers.some(m => m.id === activeMemberTab)
+                          ? '삭제된 팀원의 업무입니다. 수정·삭제만 가능합니다.'
+                          : '이 팀원의 업무가 없습니다. 아래에서 추가해 주세요.'}
+                    </div>
+                  )}
+
+                  <div className="weekly-list-items">
+                    {listTasks.map(task => {
+                      const member = tabMembers.find(m => m.id === task.memberId)
+                      const readOnly = activeMemberTab === 'all'
+                      return (
+                        <WeeklyTaskCard
+                          key={`${activeMemberTab}-${task.id}`}
+                          task={task}
+                          member={member}
+                          showMember={activeMemberTab === 'all'}
+                          reportFrom={record.from}
+                          reportTo={record.to}
+                          readOnly={readOnly}
+                          editing={!readOnly && editingTaskIds.has(task.id)}
+                          onEdit={() => startEditTask(task.id)}
+                          onUpdate={patch => updateTask(task.id, patch)}
+                          onAddWork={() => addWorkEntry(task.id)}
+                          onUpdateWorkEntry={(workId, patch) => updateWorkEntry(task.id, workId, patch)}
+                          onRemoveWorkEntry={workId => removeWorkEntry(task.id, workId)}
+                          onUpdateTarget={patch => updateTarget(task.id, patch)}
+                          onDelete={() => removeTask(task.id)}
+                        />
+                      )
+                    })}
+                  </div>
+
+                  {activeMemberTab !== 'all' && !deletedTabMembers.some(m => m.id === activeMemberTab) && (
+                    <button type="button" className="btn-add-dashed" onClick={addTask}>
+                      + 업무 추가
+                    </button>
+                  )}
+                  {activeMemberTab === 'all' && members.length === 0 && (
+                    <p className="members-hint-link">
+                      <NavLink to="/members">팀원 관리</NavLink>에서 팀원을 먼저 등록해 주세요.
+                    </p>
+                  )}
                 </div>
-                {showSaveActions && saveHeaderActions}
-              </div>
-              {listTasks.length === 0 && (
-                <div className="empty-tasks-sm">
-                  {activeMemberTab === 'all'
-                    ? (allTabTasks.length === 0
-                      ? '저장된 업무가 없습니다.'
-                      : '팀원 탭을 선택해 업무를 추가해 주세요.')
-                    : deletedTabMembers.some(m => m.id === activeMemberTab)
-                      ? '삭제된 팀원의 업무입니다. 수정·삭제만 가능합니다.'
-                      : '이 팀원의 업무가 없습니다. 아래에서 추가해 주세요.'}
-                </div>
-              )}
-              {listTasks.map(task => {
-                const member = tabMembers.find(m => m.id === task.memberId)
-                const readOnly = activeMemberTab === 'all'
-                return (
-                <WeeklyTaskCard
-                  key={`${activeMemberTab}-${task.id}`}
-                  task={task}
-                  member={member}
-                  showMember={activeMemberTab === 'all'}
-                  reportFrom={record.from}
-                  reportTo={record.to}
-                  readOnly={readOnly}
-                  editing={!readOnly && editingTaskIds.has(task.id)}
-                  onEdit={() => startEditTask(task.id)}
-                  onUpdate={patch => updateTask(task.id, patch)}
-                  onAddWork={() => addWorkEntry(task.id)}
-                  onUpdateWorkEntry={(workId, patch) => updateWorkEntry(task.id, workId, patch)}
-                  onRemoveWorkEntry={workId => removeWorkEntry(task.id, workId)}
-                  onUpdateTarget={patch => updateTarget(task.id, patch)}
-                  onDelete={() => removeTask(task.id)}
-                />
-              )})}
-              {activeMemberTab !== 'all' && !deletedTabMembers.some(m => m.id === activeMemberTab) && (
-                <button type="button" className="btn-add-dashed" onClick={addTask}>
-                  + 업무 추가
-                </button>
-              )}
-              {activeMemberTab === 'all' && members.length === 0 && (
-                <p className="members-hint-link">
-                  <NavLink to="/members">팀원 관리</NavLink>에서 팀원을 먼저 등록해 주세요.
-                </p>
-              )}
+              </aside>
             </div>
-            )}
           </>
         )}
       </section>

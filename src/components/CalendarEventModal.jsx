@@ -34,11 +34,6 @@ export default function CalendarEventModal({ event, onClose }) {
                 <span className="gcal-event-task-title">{event.taskTitle}</span>
               )}
             </h3>
-            {event.memberLabel && (
-              <span className={`member-label-badge sm ${labelClass(event.memberLabel)}`}>
-                {event.memberLabel}
-              </span>
-            )}
           </div>
         </div>
 

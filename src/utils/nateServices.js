@@ -117,7 +117,7 @@ export function formatTaskDisplayName(task) {
   return name || composeTaskName(service, platforms, nameDetail) || ''
 }
 
-/** 달력 팝업·복사용 — [서비스명 PC/모바일] 텍스트 */
+/** PC/모바일 텍스트 (복사·라벨용) */
 export function formatPlatformParen(platforms) {
   const plats = normalizePlatforms(platforms)
   if (plats.length === 2) return 'PC/모바일'
@@ -125,13 +125,13 @@ export function formatPlatformParen(platforms) {
   return ''
 }
 
+/** 달력 팝업 표시용 — PC/모바일 뱃지 + 서비스명 텍스트 */
 export function formatPlatformServiceLabel(service, platforms) {
   const svc = (service || '').trim()
   const plat = formatPlatformParen(platforms)
   if (!svc && !plat) return ''
-  if (svc && plat) return `[${svc} ${plat}]`
-  if (svc) return `[${svc}]`
-  return `[${plat}]`
+  if (plat && svc) return `${plat} ${svc}`
+  return plat || svc
 }
 
 /** 클립보드 복사용 — [PC/모바일 서비스명] */
