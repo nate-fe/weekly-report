@@ -23,6 +23,7 @@ export const NATE_SERVICES = [
   '쇼핑',
   '네이트뷰',
   '자동차',
+  '기타'
 ]
 
 export const NATE_PLATFORMS = ['PC', '모바일']
