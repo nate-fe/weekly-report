@@ -64,6 +64,19 @@ create table if not exists weekly_drafts (
   updated_at  timestamptz not null default now()
 );
 
+-- 6. 팀 설정 (주간회의)
+create table if not exists team_settings (
+  id            text primary key default 'default',
+  meeting_day   smallint not null default 3,
+  meeting_time  text not null default '14:00',
+  exceptions    jsonb not null default '[]'::jsonb,
+  updated_at    timestamptz not null default now()
+);
+
+insert into team_settings (id, meeting_day, meeting_time, exceptions)
+values ('default', 3, '14:00', '[]'::jsonb)
+on conflict (id) do nothing;
+
 -- ── 권한 설정 (반드시 실행) ───────────────────────────────────
 -- 이미 실행한 적이 있어도 다시 Run 해도 됩니다 (정책·컬럼 중복 방지 처리됨)
 
@@ -73,6 +86,7 @@ grant all on table weekly_records to anon, authenticated;
 grant all on table weekly_tasks   to anon, authenticated;
 grant all on table weekly_todos   to anon, authenticated;
 grant all on table weekly_drafts  to anon, authenticated;
+grant all on table team_settings to anon, authenticated;
 
 -- 기존 RLS 정책 삭제 후 재생성 (재실행 시 "already exists" 에러 방지)
 do $$
@@ -83,7 +97,7 @@ begin
     from pg_policies
     where schemaname = 'public'
       and tablename in (
-        'members', 'weekly_records', 'weekly_tasks', 'weekly_todos', 'weekly_drafts'
+        'members', 'weekly_records', 'weekly_tasks', 'weekly_todos', 'weekly_drafts', 'team_settings'
       )
   ) loop
     execute format(
@@ -98,6 +112,7 @@ alter table weekly_records enable row level security;
 alter table weekly_tasks   enable row level security;
 alter table weekly_todos   enable row level security;
 alter table weekly_drafts  enable row level security;
+alter table team_settings enable row level security;
 
 create policy "allow_all_members"
   on public.members for all to anon, authenticated
@@ -117,6 +132,10 @@ create policy "allow_all_weekly_todos"
 
 create policy "allow_all_weekly_drafts"
   on public.weekly_drafts for all to anon, authenticated
+  using (true) with check (true);
+
+create policy "allow_all_team_settings"
+  on public.team_settings for all to anon, authenticated
   using (true) with check (true);
 
 -- ── 기존 DB에 누락된 weekly_tasks 컬럼 추가 (curr_from 에러 방지) ──

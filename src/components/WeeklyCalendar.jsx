@@ -7,6 +7,7 @@ import {
   isInSelectedWeek,
   groupEventsForDay,
 } from '../utils/weeklyCalendar'
+import { isMeetingDay, MEETING_TOOLTIP } from '../utils/teamMeeting'
 import CalendarEventModal from './CalendarEventModal'
 import WeeklyDayModal from './WeeklyDayModal'
 
@@ -28,6 +29,7 @@ export default function WeeklyCalendar({
   tabMembers = [],
   reportFrom = '',
   reportTo = '',
+  meetingSettings = null,
   alwaysShow = false,
 }) {
   const initial = monthFromDate(reportFrom || today())
@@ -107,7 +109,9 @@ export default function WeeklyCalendar({
           return (
             <div key={wi} className="gcal-week">
               <div className="gcal-days">
-                {week.days.map(day => (
+                {week.days.map(day => {
+                  const showMeeting = isMeetingDay(day.dateStr, meetingSettings)
+                  return (
                   <button
                     type="button"
                     key={day.dateStr}
@@ -120,11 +124,17 @@ export default function WeeklyCalendar({
                     onClick={() => setSelectedDay(day.dateStr)}
                     aria-label={`${day.dateStr} 업무 보기`}
                   >
-                    <span className={`gcal-day-num ${day.isToday ? 'is-today' : ''}`}>
-                      {day.day}
+                    <span className="gcal-day-head">
+                      <span className={`gcal-day-num ${day.isToday ? 'is-today' : ''}`}>
+                        {day.day}
+                      </span>
+                      {showMeeting && (
+                        <span className="gcal-meeting-check" title={MEETING_TOOLTIP}>✓</span>
+                      )}
                     </span>
                   </button>
-                ))}
+                  )
+                })}
               </div>
 
               <div
@@ -181,6 +191,7 @@ export default function WeeklyCalendar({
       <WeeklyDayModal
         dateStr={selectedDay}
         groups={dayGroups}
+        tabMembers={tabMembers}
         onClose={() => setSelectedDay(null)}
       />
     </div>

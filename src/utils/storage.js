@@ -8,6 +8,10 @@ import { supabase } from '../lib/supabase'
 import { taskFromRow, taskToRow, normalizeWorkEntry } from './weeklyTask'
 import { normalizeDateStr } from './dates'
 import { normalizeTaskNameFields } from './nateServices'
+import {
+  DEFAULT_TEAM_MEETING,
+  normalizeTeamMeetingSettings,
+} from './teamMeeting'
 
 // ── 팀원 ─────────────────────────────────────────────────────
 
@@ -289,4 +293,89 @@ export async function upsertWeeklyRecord(weekKey, record) {
     )
     if (error) throw error
   }
+}
+
+// ── 팀 설정 (주간회의) ────────────────────────────────────────
+
+const TEAM_SETTINGS_LOCAL_KEY = 'team-meeting-settings'
+
+const TEAM_SETTINGS_SCHEMA_MIGRATION_HINT = [
+  'team_settings 테이블이 없습니다.',
+  'Supabase Dashboard → SQL Editor에서',
+  'supabase/migrate-team-settings.sql 내용을 실행해 주세요.',
+]
+
+function settingsFromRow(row) {
+  return normalizeTeamMeetingSettings({
+    meetingDay: row?.meeting_day,
+    meetingTime: row?.meeting_time,
+    exceptions: row?.exceptions,
+  })
+}
+
+function readLocalTeamSettings() {
+  try {
+    const raw = localStorage.getItem(TEAM_SETTINGS_LOCAL_KEY)
+    if (raw) return normalizeTeamMeetingSettings(JSON.parse(raw))
+  } catch { /* ignore */ }
+  return { ...DEFAULT_TEAM_MEETING, exceptions: [] }
+}
+
+function writeLocalTeamSettings(settings) {
+  try {
+    localStorage.setItem(TEAM_SETTINGS_LOCAL_KEY, JSON.stringify(settings))
+  } catch { /* ignore */ }
+}
+
+export async function checkTeamSettingsSchema() {
+  const { error } = await supabase.from('team_settings').select('id').limit(0)
+  return !error
+}
+
+export function isTeamSettingsSchemaError(error) {
+  const msg = error?.message || ''
+  return msg.includes('team_settings') || error?.code === 'PGRST204'
+}
+
+export function teamSettingsSchemaMigrationMessages() {
+  return TEAM_SETTINGS_SCHEMA_MIGRATION_HINT
+}
+
+export async function fetchTeamSettings() {
+  try {
+    const { data, error } = await supabase
+      .from('team_settings')
+      .select('*')
+      .eq('id', 'default')
+      .maybeSingle()
+    if (error) throw error
+    if (data) {
+      const settings = settingsFromRow(data)
+      writeLocalTeamSettings(settings)
+      return settings
+    }
+  } catch { /* fallback below */ }
+  return readLocalTeamSettings()
+}
+
+export async function upsertTeamSettings(settings) {
+  const normalized = normalizeTeamMeetingSettings(settings)
+  writeLocalTeamSettings(normalized)
+
+  const { error } = await supabase.from('team_settings').upsert({
+    id: 'default',
+    meeting_day: normalized.meetingDay,
+    meeting_time: normalized.meetingTime,
+    exceptions: normalized.exceptions,
+    updated_at: new Date().toISOString(),
+  })
+  if (error) {
+    if (isTeamSettingsSchemaError(error)) {
+      const err = new Error('team_settings 테이블이 없습니다. Supabase에서 migrate-team-settings.sql을 실행해 주세요.')
+      err.code = error.code
+      throw err
+    }
+    throw error
+  }
+  return normalized
 }

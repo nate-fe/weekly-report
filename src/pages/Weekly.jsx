@@ -10,6 +10,7 @@ import {
   deleteWeeklyDraft,
   fetchMembers,
   fetchMembersByIds,
+  fetchTeamSettings,
   checkWeeklyTasksSchema,
   checkWeeklyDraftsSchema,
   isWeeklySchemaError,
@@ -38,6 +39,7 @@ import {
 } from '../utils/weeklyTask'
 import { formatDraftSavedAt } from '../utils/weeklyDraft'
 import { labelClass } from '../utils/members'
+import { DEFAULT_TEAM_MEETING } from '../utils/teamMeeting'
 import AlertModal from '../components/AlertModal'
 import ConfirmModal from '../components/ConfirmModal'
 import WeeklyTaskCard from '../components/WeeklyTaskCard'
@@ -105,6 +107,7 @@ export default function Weekly() {
   const resizingRef = useRef(false)
   const [prevImportTasks, setPrevImportTasks] = useState([])
   const [allWeekTasks, setAllWeekTasks] = useState([])
+  const [meetingSettings, setMeetingSettings] = useState(DEFAULT_TEAM_MEETING)
   const recordRef = useRef(null)
 
   const refreshAllWeekTasks = async () => {
@@ -186,6 +189,13 @@ export default function Weekly() {
     fetchMembers()
       .then(setMembers)
       .catch(e => showToast('팀원 로드 실패: ' + e.message, true))
+  }, [])
+
+  // ── 주간회의 설정 ──
+  useEffect(() => {
+    fetchTeamSettings()
+      .then(setMeetingSettings)
+      .catch(() => {})
   }, [])
 
   // ── 현재 주차 업무에 있는 삭제된 팀원 탭 ──
@@ -832,6 +842,7 @@ export default function Weekly() {
                   tabMembers={tabMembers}
                   reportFrom={record.from}
                   reportTo={record.to}
+                  meetingSettings={meetingSettings}
                   alwaysShow
                 />
               </div>

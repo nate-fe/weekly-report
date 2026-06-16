@@ -42,6 +42,16 @@ export function dayEntriesForGroup(items = []) {
   return entries
 }
 
+/** 일일 업무 팝업 — N명 중 M명 작성 완료 */
+export function daySubmissionStats(groups = [], tabMembers = []) {
+  const total = tabMembers.length
+  const completed = tabMembers.filter(m => {
+    const group = groups.find(g => g.memberName === m.name)
+    return group && dayEntriesForGroup(group.items).length > 0
+  }).length
+  return { total, completed }
+}
+
 function formatMemberDayBlock(group) {
   const entries = dayEntriesForGroup(group.items)
   if (!entries.length) return ''

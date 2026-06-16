@@ -1,6 +1,7 @@
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import Weekly from './pages/Weekly'
 import Members from './pages/Members'
+import Settings from './pages/Settings'
 
 export default function App() {
   return (
@@ -23,6 +24,12 @@ export default function App() {
           >
             팀원 관리
           </NavLink>
+          <NavLink
+            to="/settings"
+            className={({ isActive }) => `nav-tab ${isActive ? 'active' : ''}`}
+          >
+            설정
+          </NavLink>
         </nav>
       </header>
 
@@ -32,6 +39,7 @@ export default function App() {
           <Route path="/daily" element={<Navigate to="/weekly" replace />} />
           <Route path="/weekly" element={<Weekly />} />
           <Route path="/members" element={<Members />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<Navigate to="/weekly" replace />} />
         </Routes>
       </main>

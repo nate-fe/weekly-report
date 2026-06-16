@@ -1,14 +1,14 @@
 import { useState } from 'react'
 import { fmtKo } from '../utils/dates'
-import { dayEntriesForGroup, formatDayCopyText } from '../utils/weeklyDayFormat'
+import { dayEntriesForGroup, formatDayCopyText, daySubmissionStats } from '../utils/weeklyDayFormat'
 import ServicePlatformLabel from './ServicePlatformLabel'
 
-export default function WeeklyDayModal({ dateStr, groups = [], onClose }) {
+export default function WeeklyDayModal({ dateStr, groups = [], tabMembers = [], onClose }) {
   const [copied, setCopied] = useState(false)
 
   if (!dateStr) return null
 
-  const totalItems = groups.reduce((n, g) => n + g.items.length, 0)
+  const { total, completed } = daySubmissionStats(groups, tabMembers)
 
   const handleCopy = async () => {
     const text = formatDayCopyText(groups)
@@ -35,7 +35,9 @@ export default function WeeklyDayModal({ dateStr, groups = [], onClose }) {
           <h3 id="weekly-day-modal-title" className="daily-day-modal-title">
             {fmtKo(dateStr)} 일일 업무
           </h3>
-          <span className="daily-day-modal-cnt">{totalItems}건</span>
+          <span className="daily-day-modal-cnt">
+            {total}명 중 {completed}명 작성 완료
+          </span>
         </div>
 
         {groups.length === 0 ? (
