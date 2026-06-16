@@ -104,12 +104,16 @@ function clipRange(from, to, weekFrom, weekTo) {
   return { from: clipFrom, to: clipTo }
 }
 
-/** 선택 주(일~토) 밖이면 tone-last, 안이면 날짜 기준 분류 */
-function eventToneForSegment(dateStr, reportFrom, reportTo) {
-  if (!isInSelectedWeek(dateStr, reportFrom, reportTo)) {
+/** 선택 주(일~토) 밖이면 tone-last, 선택 주 행 안이면 날짜 기준 분류 (tone-last 미사용) */
+function eventToneForSegment(dateStr, reportFrom, reportTo, { inSelectedWeekRow = false } = {}) {
+  if (!inSelectedWeekRow && !isInSelectedWeek(dateStr, reportFrom, reportTo)) {
     return { key: 'last', label: '지난주', tone: 'last' }
   }
-  return workMetaForDate(dateStr, reportFrom, reportTo)
+  const meta = workMetaForDate(dateStr, reportFrom, reportTo)
+  if (inSelectedWeekRow && meta.tone === 'last') {
+    return { ...meta, tone: 'curr' }
+  }
+  return meta
 }
 
 /** 한 주 안에서 이벤트 바 배치 (겹침 방지 레인) */
@@ -117,6 +121,7 @@ export function placeEventsInWeek(events, weekDays, maxLanes = 4, reportFrom = '
   const dateToCol = Object.fromEntries(weekDays.map((d, i) => [d.dateStr, i]))
   const weekFrom = weekDays[0].dateStr
   const weekTo = weekDays[6].dateStr
+  const inSelectedWeekRow = isSelectedWeekRow(weekDays, reportFrom, reportTo)
 
   const segments = events
     .map(ev => {
@@ -125,7 +130,7 @@ export function placeEventsInWeek(events, weekDays, maxLanes = 4, reportFrom = '
       const startCol = dateToCol[clipped.from]
       const endCol = dateToCol[clipped.to]
       if (startCol === undefined || endCol === undefined) return null
-      const meta = eventToneForSegment(clipped.from, reportFrom, reportTo)
+      const meta = eventToneForSegment(clipped.from, reportFrom, reportTo, { inSelectedWeekRow })
       return {
         ...ev,
         clipFrom: clipped.from,

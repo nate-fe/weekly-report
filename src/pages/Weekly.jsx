@@ -494,19 +494,25 @@ export default function Weekly() {
   }
 
 
-  const filteredTasks = (record?.tasks || []).filter(t =>
-    activeMemberTab === 'all' ? !draftTaskIds.has(t.id) : t.memberId === activeMemberTab
-  )
-
-  const allTabTasks = useMemo(
+  const calendarTasks = useMemo(
     () => allWeekTasks.filter(t => !draftTaskIds.has(t.id)),
     [allWeekTasks, draftTaskIds],
   )
 
-  const listTasks = activeMemberTab === 'all' ? allTabTasks : filteredTasks
+  /** 선택 주(record) 기준 — 업무 목록·카운트용 */
+  const weekTasks = useMemo(
+    () => (record?.tasks || []).filter(t => !draftTaskIds.has(t.id)),
+    [record?.tasks, draftTaskIds],
+  )
+
+  const filteredTasks = (record?.tasks || []).filter(t =>
+    t.memberId === activeMemberTab
+  )
+
+  const listTasks = activeMemberTab === 'all' ? weekTasks : filteredTasks
 
   const taskCountLabel = activeMemberTab === 'all'
-    ? `${allTabTasks.length}건`
+    ? `${weekTasks.length}건`
     : `${filteredTasks.length}건`
 
   const showSaveActions = activeMemberTab !== 'all' && (record?.tasks || []).some(
@@ -779,7 +785,7 @@ export default function Weekly() {
                 onClick={() => switchMemberTab('all')}
               >
                 전체
-                <span className="member-tab-cnt">{allTabTasks.length}</span>
+                <span className="member-tab-cnt">{weekTasks.length}</span>
               </button>
               {tabMembers.map(m => {
                 const cnt = (record.tasks || []).filter(t => t.memberId === m.id).length
@@ -808,7 +814,7 @@ export default function Weekly() {
             <div className="weekly-split" ref={splitRef}>
               <div className="weekly-calendar-column">
                 <WeeklyCalendar
-                  tasks={allTabTasks}
+                  tasks={calendarTasks}
                   tabMembers={tabMembers}
                   reportFrom={record.from}
                   reportTo={record.to}
@@ -840,9 +846,7 @@ export default function Weekly() {
                   {listTasks.length === 0 && (
                     <div className="empty-tasks-sm">
                       {activeMemberTab === 'all'
-                        ? (allTabTasks.length === 0
-                          ? '저장된 업무가 없습니다.'
-                          : '팀원 탭을 선택해 업무를 추가해 주세요.')
+                        ? '이 주차에 저장된 업무가 없습니다.'
                         : deletedTabMembers.some(m => m.id === activeMemberTab)
                           ? '삭제된 팀원의 업무입니다. 수정·삭제만 가능합니다.'
                           : '이 팀원의 업무가 없습니다. 아래에서 추가해 주세요.'}
