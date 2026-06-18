@@ -96,26 +96,7 @@ export default function PersonalMemo() {
     const page = createMemoPage()
     setPages(prev => [...prev, page])
     setActivePageId(page.id)
-    setDirty(true)
   }
-
-  const titleActions = (
-    <div className="memo-page-title-actions">
-      {savedAt && (
-        <span className="memo-saved-at">
-          마지막 저장 · {new Date(savedAt).toLocaleString('ko-KR')}
-        </span>
-      )}
-      <button
-        type="button"
-        className="btn-primary-sm"
-        onClick={handleSave}
-        disabled={busy || !dirty || !activePage}
-      >
-        {busy ? '저장 중...' : '저장'}
-      </button>
-    </div>
-  )
 
   const handleSave = async () => {
     if (!employeeId) return
@@ -139,6 +120,26 @@ export default function PersonalMemo() {
       setBusy(false)
     }
   }
+
+  const titleActions = activePage ? (
+    <div className="memo-page-title-actions">
+      {savedAt && !dirty && (
+        <span className="memo-saved-at">
+          마지막 저장 · {new Date(savedAt).toLocaleString('ko-KR')}
+        </span>
+      )}
+      {dirty && (
+        <button
+          type="button"
+          className="btn-primary-sm"
+          onClick={handleSave}
+          disabled={busy}
+        >
+          {busy ? '저장 중...' : '저장'}
+        </button>
+      )}
+    </div>
+  ) : null
 
   const confirmDeletePage = () => {
     if (!deletePageTarget) return

@@ -9,13 +9,16 @@ import {
 
 export default function MemoRichEditor({ pageId, value, onChange, placeholder }) {
   const editorRef = useRef(null)
+  const syncingRef = useRef(false)
   const [showColors, setShowColors] = useState(false)
   const [showSizes, setShowSizes] = useState(false)
 
   useEffect(() => {
     const el = editorRef.current
     if (!el) return
+    syncingRef.current = true
     el.innerHTML = normalizeMemoContentHtml(value)
+    syncingRef.current = false
   }, [pageId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -60,6 +63,7 @@ export default function MemoRichEditor({ pageId, value, onChange, placeholder })
   }
 
   const handleInput = () => {
+    if (syncingRef.current) return
     emitChange()
   }
 
