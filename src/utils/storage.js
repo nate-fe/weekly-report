@@ -12,18 +12,20 @@ import {
   DEFAULT_TEAM_MEETING,
   normalizeTeamMeetingSettings,
 } from './teamMeeting'
+import { normalizeEmployeeId } from './employeeId'
 
 // ── 팀원 ─────────────────────────────────────────────────────
 
 const MEMBERS_SCHEMA_MIGRATION_HINT = [
-  'members 테이블에 label 컬럼이 없습니다.',
+  'members 테이블에 label 또는 employee_id 컬럼이 없습니다.',
   'Supabase Dashboard → SQL Editor에서 아래 SQL을 실행해 주세요.',
   "alter table members add column if not exists label text not null default 'FE개발';",
+  'supabase/migrate-member-employee-id.sql 내용도 실행해 주세요.',
 ]
 
-/** members.label 컬럼 존재 여부 */
+/** members.label / employee_id 컬럼 존재 여부 */
 export async function checkMembersSchema() {
-  const { error } = await supabase.from('members').select('label').limit(0)
+  const { error } = await supabase.from('members').select('label, employee_id').limit(0)
   return !error
 }
 
@@ -65,17 +67,20 @@ export async function fetchMembersByIds(ids) {
 
 /** 팀원 추가 */
 export async function insertMember(member) {
+  const employeeId = member.employee_id ? normalizeEmployeeId(member.employee_id) : null
   const base = {
     id: member.id,
     name: member.name,
     color: member.color,
+    employee_id: employeeId,
   }
   let { error } = await supabase.from('members').insert({
     ...base,
     label: member.label || 'FE개발',
   })
   if (error && isMembersSchemaError(error)) {
-    ;({ error } = await supabase.from('members').insert(base))
+    const fallback = { id: member.id, name: member.name, color: member.color }
+    ;({ error } = await supabase.from('members').insert(fallback))
   }
   if (error) throw error
 }
@@ -300,9 +305,9 @@ export async function upsertWeeklyRecord(weekKey, record) {
 const TEAM_SETTINGS_LOCAL_KEY = 'team-meeting-settings'
 
 const TEAM_SETTINGS_SCHEMA_MIGRATION_HINT = [
-  'team_settings 테이블이 없습니다.',
+  'team_settings 테이블이 없거나 services 컬럼이 없습니다.',
   'Supabase Dashboard → SQL Editor에서',
-  'supabase/migrate-team-settings.sql 내용을 실행해 주세요.',
+  'supabase/migrate-team-settings.sql 및 migrate-team-services.sql 내용을 실행해 주세요.',
 ]
 
 function settingsFromRow(row) {
@@ -310,6 +315,7 @@ function settingsFromRow(row) {
     meetingDay: row?.meeting_day,
     meetingTime: row?.meeting_time,
     exceptions: row?.exceptions,
+    services: row?.services,
   })
 }
 
@@ -318,7 +324,7 @@ function readLocalTeamSettings() {
     const raw = localStorage.getItem(TEAM_SETTINGS_LOCAL_KEY)
     if (raw) return normalizeTeamMeetingSettings(JSON.parse(raw))
   } catch { /* ignore */ }
-  return { ...DEFAULT_TEAM_MEETING, exceptions: [] }
+  return normalizeTeamMeetingSettings({ ...DEFAULT_TEAM_MEETING, exceptions: [] })
 }
 
 function writeLocalTeamSettings(settings) {
@@ -328,7 +334,7 @@ function writeLocalTeamSettings(settings) {
 }
 
 export async function checkTeamSettingsSchema() {
-  const { error } = await supabase.from('team_settings').select('id').limit(0)
+  const { error } = await supabase.from('team_settings').select('id, services').limit(0)
   return !error
 }
 
@@ -362,13 +368,26 @@ export async function upsertTeamSettings(settings) {
   const normalized = normalizeTeamMeetingSettings(settings)
   writeLocalTeamSettings(normalized)
 
-  const { error } = await supabase.from('team_settings').upsert({
+  const payload = {
     id: 'default',
     meeting_day: normalized.meetingDay,
     meeting_time: normalized.meetingTime,
     exceptions: normalized.exceptions,
+    services: normalized.services,
     updated_at: new Date().toISOString(),
-  })
+  }
+
+  let { error } = await supabase.from('team_settings').upsert(payload)
+  if (error && (error.message || '').includes('services')) {
+    const { meeting_day, meeting_time, exceptions, id, updated_at } = payload
+    ;({ error } = await supabase.from('team_settings').upsert({
+      id,
+      meeting_day,
+      meeting_time,
+      exceptions,
+      updated_at,
+    }))
+  }
   if (error) {
     if (isTeamSettingsSchemaError(error)) {
       const err = new Error('team_settings 테이블이 없습니다. Supabase에서 migrate-team-settings.sql을 실행해 주세요.')

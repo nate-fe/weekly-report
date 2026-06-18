@@ -179,7 +179,7 @@ export function expectedWorkRanges(reportFrom, reportTo) {
   return ranges
 }
 
-function rangesOverlap(aFrom, aTo, bFrom, bTo) {
+export function rangesOverlap(aFrom, aTo, bFrom, bTo) {
   const fromA = aFrom
   const toA = aTo || aFrom
   const fromB = bFrom

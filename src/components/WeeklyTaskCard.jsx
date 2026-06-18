@@ -4,8 +4,8 @@ import { fmtKo } from '../utils/dates'
 import { workSummary, WORK_VIEW_GROUPS, groupWorksForView } from '../utils/weeklyTask'
 import { labelClass } from '../utils/members'
 import {
-  NATE_SERVICES,
   NATE_PLATFORMS,
+  getServicesList,
   normalizeTaskNameFields,
   patchTaskNameFields,
   togglePlatform,
@@ -144,7 +144,7 @@ export default function WeeklyTaskCard({
                   onChange={e => handleNameField({ service: e.target.value })}
                 >
                   <option value="">선택</option>
-                  {NATE_SERVICES.map(s => (
+                  {getServicesList().map(s => (
                     <option key={s} value={s}>{s}</option>
                   ))}
                 </select>

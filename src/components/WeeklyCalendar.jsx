@@ -7,7 +7,7 @@ import {
   isInSelectedWeek,
   groupEventsForDay,
 } from '../utils/weeklyCalendar'
-import { isMeetingDay, MEETING_TOOLTIP } from '../utils/teamMeeting'
+import { isMeetingDay, meetingTooltipText } from '../utils/teamMeeting'
 import CalendarEventModal from './CalendarEventModal'
 import WeeklyDayModal from './WeeklyDayModal'
 
@@ -129,7 +129,12 @@ export default function WeeklyCalendar({
                         {day.day}
                       </span>
                       {showMeeting && (
-                        <span className="gcal-meeting-check" title={MEETING_TOOLTIP}>✓</span>
+                        <span
+                          className="gcal-meeting-check"
+                          title={meetingTooltipText(meetingSettings, day.dateStr)}
+                        >
+                          ✓
+                        </span>
                       )}
                     </span>
                   </button>

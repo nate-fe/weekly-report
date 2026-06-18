@@ -1,4 +1,4 @@
-export const NATE_SERVICES = [
+export const DEFAULT_NATE_SERVICES = [
   '메인',
   '뉴스',
   '판',
@@ -23,12 +23,29 @@ export const NATE_SERVICES = [
   '쇼핑',
   '네이트뷰',
   '자동차',
-  '기타'
+  '기타',
 ]
+
+/** @deprecated getServicesList() 사용 권장 */
+export const NATE_SERVICES = DEFAULT_NATE_SERVICES
 
 export const NATE_PLATFORMS = ['PC', '모바일']
 
-const SERVICES_BY_LENGTH = [...NATE_SERVICES].sort((a, b) => b.length - a.length)
+let _activeServices = [...DEFAULT_NATE_SERVICES]
+
+export function getServicesList() {
+  return _activeServices
+}
+
+export function setServicesList(list) {
+  _activeServices = Array.isArray(list) && list.length
+    ? [...list]
+    : [...DEFAULT_NATE_SERVICES]
+}
+
+function servicesByLength(services = getServicesList()) {
+  return [...services].sort((a, b) => b.length - a.length)
+}
 
 /** 플랫폼 배열 정규화 (순서: PC → 모바일) */
 export function normalizePlatforms(platforms, legacyPlatform) {
@@ -56,12 +73,12 @@ export function normalizePlatforms(platforms, legacyPlatform) {
 }
 
 /** 저장된 업무명 → 서비스·플랫폼·상세 */
-export function parseTaskName(name = '') {
+export function parseTaskName(name = '', services) {
   let rest = (name || '').trim()
   let service = ''
   const platforms = []
 
-  for (const s of SERVICES_BY_LENGTH) {
+  for (const s of servicesByLength(services)) {
     if (rest === s || rest.startsWith(`${s} `)) {
       service = s
       rest = rest === s ? '' : rest.slice(s.length).trim()

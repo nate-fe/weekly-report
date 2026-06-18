@@ -5,12 +5,13 @@
 
 -- 1. 팀원
 create table if not exists members (
-  id          text primary key,
-  name        text not null,
-  color       text not null,
-  label       text not null default 'FE개발',
-  deleted_at  timestamptz,
-  created_at  timestamptz not null default now()
+  id            text primary key,
+  name          text not null,
+  color         text not null,
+  label         text not null default 'FE개발',
+  employee_id   text,
+  deleted_at    timestamptz,
+  created_at    timestamptz not null default now()
 );
 
 -- 2. 주간 보고 헤더
@@ -77,6 +78,14 @@ insert into team_settings (id, meeting_day, meeting_time, exceptions)
 values ('default', 3, '14:00', '[]'::jsonb)
 on conflict (id) do nothing;
 
+-- 7. 개인 메모 (사번별, 페이지 목록)
+create table if not exists personal_memos (
+  employee_id  text primary key,
+  content      text not null default '',
+  pages        jsonb not null default '[]'::jsonb,
+  updated_at   timestamptz not null default now()
+);
+
 -- ── 권한 설정 (반드시 실행) ───────────────────────────────────
 -- 이미 실행한 적이 있어도 다시 Run 해도 됩니다 (정책·컬럼 중복 방지 처리됨)
 
@@ -87,6 +96,7 @@ grant all on table weekly_tasks   to anon, authenticated;
 grant all on table weekly_todos   to anon, authenticated;
 grant all on table weekly_drafts  to anon, authenticated;
 grant all on table team_settings to anon, authenticated;
+grant all on table personal_memos to anon, authenticated;
 
 -- 기존 RLS 정책 삭제 후 재생성 (재실행 시 "already exists" 에러 방지)
 do $$
@@ -97,7 +107,7 @@ begin
     from pg_policies
     where schemaname = 'public'
       and tablename in (
-        'members', 'weekly_records', 'weekly_tasks', 'weekly_todos', 'weekly_drafts', 'team_settings'
+        'members', 'weekly_records', 'weekly_tasks', 'weekly_todos', 'weekly_drafts', 'team_settings', 'personal_memos'
       )
   ) loop
     execute format(
@@ -113,6 +123,7 @@ alter table weekly_tasks   enable row level security;
 alter table weekly_todos   enable row level security;
 alter table weekly_drafts  enable row level security;
 alter table team_settings enable row level security;
+alter table personal_memos enable row level security;
 
 create policy "allow_all_members"
   on public.members for all to anon, authenticated
@@ -136,6 +147,10 @@ create policy "allow_all_weekly_drafts"
 
 create policy "allow_all_team_settings"
   on public.team_settings for all to anon, authenticated
+  using (true) with check (true);
+
+create policy "allow_all_personal_memos"
+  on public.personal_memos for all to anon, authenticated
   using (true) with check (true);
 
 -- ── 기존 DB에 누락된 weekly_tasks 컬럼 추가 (curr_from 에러 방지) ──

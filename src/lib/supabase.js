@@ -10,4 +10,9 @@ if (!url || !key) {
   )
 }
 
-export const supabase = createClient(url ?? '', key ?? '')
+export const supabase = createClient(url ?? '', key ?? '', {
+  auth: {
+    detectSessionInUrl: true,
+    persistSession: true,
+  },
+})

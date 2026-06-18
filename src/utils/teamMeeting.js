@@ -1,4 +1,5 @@
 import { addDays, fmt, normalizeDateStr } from './dates'
+import { DEFAULT_NATE_SERVICES } from './nateServices'
 
 export const MEETING_TOOLTIP = 'UI팀 주간회의'
 
@@ -16,6 +17,7 @@ export const DEFAULT_TEAM_MEETING = {
   meetingDay: 3,
   meetingTime: '14:00',
   exceptions: [],
+  services: [...DEFAULT_NATE_SERVICES],
 }
 
 let _uid = Date.now()
@@ -45,6 +47,20 @@ export function normalizeException(ex) {
   }
 }
 
+export function normalizeTeamServices(raw) {
+  const list = raw?.services ?? []
+  if (!Array.isArray(list)) return [...DEFAULT_NATE_SERVICES]
+  const seen = new Set()
+  const result = []
+  for (const item of list) {
+    const name = String(item || '').trim()
+    if (!name || seen.has(name)) continue
+    seen.add(name)
+    result.push(name)
+  }
+  return result.length ? result : [...DEFAULT_NATE_SERVICES]
+}
+
 export function normalizeTeamMeetingSettings(raw) {
   const meetingDay = Number(raw?.meetingDay ?? raw?.meeting_day ?? DEFAULT_TEAM_MEETING.meetingDay)
   const meetingTime = (raw?.meetingTime ?? raw?.meeting_time ?? DEFAULT_TEAM_MEETING.meetingTime).trim()
@@ -59,6 +75,7 @@ export function normalizeTeamMeetingSettings(raw) {
     meetingDay: WEEKDAY_OPTIONS.some(o => o.value === meetingDay) ? meetingDay : DEFAULT_TEAM_MEETING.meetingDay,
     meetingTime,
     exceptions,
+    services: normalizeTeamServices(raw),
   }
 }
 
@@ -80,4 +97,19 @@ export function isMeetingDay(dateStr, settings) {
 
 export function weekdayLabel(day) {
   return WEEKDAY_OPTIONS.find(o => o.value === day)?.label || '수요일'
+}
+
+/** 해당 날짜 회의 시간 (예외 일정 시간 우선) */
+export function meetingTimeForDate(settings, dateStr) {
+  const date = normalizeDateStr(dateStr)
+  if (!date) return ''
+  const { meetingTime, exceptions } = normalizeTeamMeetingSettings(settings)
+  const ex = exceptions.find(e => e.date === date)
+  return (ex?.time || meetingTime || '').trim()
+}
+
+/** 달력 ✓ 툴팁 */
+export function meetingTooltipText(settings, dateStr) {
+  const time = meetingTimeForDate(settings, dateStr)
+  return time ? `${MEETING_TOOLTIP} · ${time}` : MEETING_TOOLTIP
 }

@@ -16,14 +16,22 @@ import {
   nextMemberColor,
   normalizeMemberColor,
 } from '../utils/members'
+import {
+  employeeIdValidationError,
+  normalizeEmployeeId,
+} from '../utils/employeeId'
+import { memberEmployeeIds, isTeamLeader } from '../utils/teamAccess'
+import { useTeamAccess } from '../context/TeamAccessContext'
 import AlertModal from '../components/AlertModal'
 import ConfirmModal from '../components/ConfirmModal'
 
 export default function Members() {
+  const { refreshMembers } = useTeamAccess()
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
   const [labelSchemaOk, setLabelSchemaOk] = useState(true)
   const [newName, setNewName] = useState('')
+  const [newEmployeeId, setNewEmployeeId] = useState('')
   const [newLabel, setNewLabel] = useState(MEMBER_LABELS[0])
   const [toast, setToast] = useState('')
   const [alert, setAlert] = useState(null)
@@ -38,7 +46,10 @@ export default function Members() {
   const load = () => {
     setLoading(true)
     fetchMembers()
-      .then(setMembers)
+      .then(data => {
+        setMembers(data)
+        refreshMembers()
+      })
       .catch(e => showToast('팀원 로드 실패: ' + e.message, true))
       .finally(() => setLoading(false))
   }
@@ -56,7 +67,7 @@ export default function Members() {
         }
       })
       .catch(() => {})
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const showLabelSchemaAlert = () => {
     setAlert({
@@ -68,16 +79,39 @@ export default function Members() {
   const addMember = () => {
     const name = newName.trim()
     if (!name) return
+
+    const idErr = employeeIdValidationError(newEmployeeId)
+    if (idErr) {
+      showToast(idErr, true)
+      return
+    }
+
+    const employeeId = normalizeEmployeeId(newEmployeeId)
+    if (isTeamLeader({ name, employee_id: employeeId })) {
+      showToast('팀장은 팀원 관리 목록에 추가하지 않습니다.', true)
+      return
+    }
+    const duplicate = members.some(m => normalizeEmployeeId(m.employee_id) === employeeId)
+    if (duplicate) {
+      showToast('이미 등록된 사번입니다.', true)
+      return
+    }
+
     const m = {
       id: memberUid(),
       name,
+      employee_id: employeeId,
       color: nextMemberColor(members),
       label: newLabel,
     }
     setMembers(prev => [...prev, m])
     setNewName('')
+    setNewEmployeeId('')
     insertMember(m)
-      .then(() => showToast('팀원이 추가되었습니다'))
+      .then(() => {
+        showToast('팀원이 추가되었습니다')
+        refreshMembers()
+      })
       .catch(e => {
         showToast('팀원 추가 실패: ' + e.message, true)
         setMembers(prev => prev.filter(x => x.id !== m.id))
@@ -112,7 +146,10 @@ export default function Members() {
     const prev = members
     setMembers(ms => ms.filter(m => m.id !== deleteTarget))
     deleteMember(deleteTarget)
-      .then(() => showToast('팀원이 삭제되었습니다'))
+      .then(() => {
+        showToast('팀원이 삭제되었습니다')
+        refreshMembers()
+      })
       .catch(e => {
         showToast('삭제 실패: ' + e.message, true)
         setMembers(prev)
@@ -129,11 +166,17 @@ export default function Members() {
     )
   }
 
+  const manageableMembers = members.filter(m => !isTeamLeader(m))
+  const registeredIds = memberEmployeeIds(manageableMembers)
+
   return (
     <div className="members-page">
       <div className="members-header">
         <h2 className="members-title">팀원 관리</h2>
-        <p className="members-desc">팀원을 추가하고 레이블(디자인 / FE개발)과 색상으로 구분합니다. 아바타를 클릭해 색상을 변경할 수 있습니다.</p>
+        <p className="members-desc">
+          매니저 이름과 사번을 등록합니다. 팀장은 목록에서 제외됩니다.
+          레이블(디자인 / FE개발)과 색상으로 구분하며, 아바타를 클릭해 색상을 변경할 수 있습니다.
+        </p>
       </div>
 
       <div className="members-add-card">
@@ -143,6 +186,14 @@ export default function Members() {
           placeholder="이름"
           value={newName}
           onChange={e => setNewName(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && addMember()}
+        />
+        <input
+          type="text"
+          className="members-add-input members-add-input-employee"
+          placeholder="사번 (N1234)"
+          value={newEmployeeId}
+          onChange={e => setNewEmployeeId(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && addMember()}
         />
         <select
@@ -157,8 +208,12 @@ export default function Members() {
         <button type="button" className="btn-primary-sm" onClick={addMember}>추가</button>
       </div>
 
+      <p className="members-employee-summary">
+        등록 사번 {registeredIds.length}개
+      </p>
+
       {MEMBER_LABELS.map(label => {
-        const group = members.filter(m => (m.label || 'FE개발') === label)
+        const group = manageableMembers.filter(m => (m.label || 'FE개발') === label)
         return (
           <section key={label} className="members-group">
             <div className="members-group-header">
@@ -182,7 +237,12 @@ export default function Members() {
                       >
                         {m.name[0]}
                       </button>
-                      <span className="members-list-name">{m.name}</span>
+                      <div className="members-list-identity">
+                        <span className="members-list-name">{m.name}</span>
+                        {m.employee_id && (
+                          <span className="members-list-employee-id">{normalizeEmployeeId(m.employee_id)}</span>
+                        )}
+                      </div>
                       <select
                         className="members-label-select"
                         value={m.label || 'FE개발'}
