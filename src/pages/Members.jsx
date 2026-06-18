@@ -167,6 +167,7 @@ export default function Members() {
   }
 
   const manageableMembers = members.filter(m => !isTeamLeader(m))
+  const teamLeaders = members.filter(isTeamLeader)
   const registeredIds = memberEmployeeIds(manageableMembers)
 
   return (
@@ -174,7 +175,8 @@ export default function Members() {
       <div className="members-header">
         <h2 className="members-title">팀원 관리</h2>
         <p className="members-desc">
-          매니저 이름과 사번을 등록합니다. 팀장은 목록에서 제외됩니다.
+          매니저 이름과 사번을 등록합니다.
+          팀장은 아래 별도 영역에 표시되며, 매니저 목록에는 추가하지 않습니다.
           레이블(디자인 / FE개발)과 색상으로 구분하며, 아바타를 클릭해 색상을 변경할 수 있습니다.
         </p>
       </div>
@@ -208,9 +210,43 @@ export default function Members() {
         <button type="button" className="btn-primary-sm" onClick={addMember}>추가</button>
       </div>
 
+
       <p className="members-employee-summary">
-        등록 사번 {registeredIds.length}개
+        UI팀 총 {teamLeaders.length + registeredIds.length}명 - 팀장 {teamLeaders.length}명, 매니저 {registeredIds.length}명
       </p>
+      <section className="members-leader-section">
+        <div className="members-group-header">
+          <span className="member-label-badge members-leader-badge">팀장</span>
+          <span className="members-group-cnt">{teamLeaders.length}명</span>
+        </div>
+        {teamLeaders.length === 0 ? (
+          <p className="members-leader-empty">
+            등록된 팀장 정보가 없습니다. DB 시드(`migrate-member-employee-id.sql`)를 확인해 주세요.
+          </p>
+        ) : (
+          <ul className="members-leader-list">
+            {teamLeaders.map(leader => (
+              <li key={leader.id} className="members-leader-item">
+                <span
+                  className="member-avatar members-leader-avatar"
+                  style={{ background: normalizeMemberColor(leader.color) }}
+                  aria-hidden
+                >
+                  {leader.name[0]}
+                </span>
+                <div className="members-list-identity">
+                  <span className="members-list-name">{leader.name}</span>
+                  {leader.employee_id && (
+                    <span className="members-list-employee-id">
+                      {normalizeEmployeeId(leader.employee_id)}
+                    </span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {MEMBER_LABELS.map(label => {
         const group = manageableMembers.filter(m => (m.label || 'FE개발') === label)
