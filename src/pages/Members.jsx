@@ -175,8 +175,7 @@ export default function Members() {
       <div className="members-header">
         <h2 className="members-title">팀원 관리</h2>
         <p className="members-desc">
-          매니저 이름과 사번을 등록합니다.
-          팀장은 아래 별도 영역에 표시되며, 매니저 목록에는 추가하지 않습니다.
+          매니저 이름과 사번을 등록합니다.<br/>
           레이블(디자인 / FE개발)과 색상으로 구분하며, 아바타를 클릭해 색상을 변경할 수 있습니다.
         </p>
       </div>
