@@ -7,7 +7,7 @@ import {
   updateMemberColor,
   checkMembersSchema,
   membersSchemaMigrationMessages,
-} from '../utils/storage'
+} from '../../utils/storage'
 import {
   MEMBER_LABELS,
   MEMBER_COLORS,
@@ -15,17 +15,17 @@ import {
   labelClass,
   nextMemberColor,
   normalizeMemberColor,
-} from '../utils/members'
+} from '../../utils/members'
 import {
   employeeIdValidationError,
   normalizeEmployeeId,
-} from '../utils/employeeId'
-import { memberEmployeeIds, isTeamLeader } from '../utils/teamAccess'
-import { useTeamAccess } from '../context/TeamAccessContext'
-import AlertModal from '../components/AlertModal'
-import ConfirmModal from '../components/ConfirmModal'
+} from '../../utils/employeeId'
+import { memberEmployeeIds, isTeamLeader } from '../../utils/teamAccess'
+import { useTeamAccess } from '../../context/TeamAccessContext'
+import AlertModal from '../AlertModal'
+import ConfirmModal from '../ConfirmModal'
 
-export default function Members() {
+export default function SettingsMembersSection() {
   const { refreshMembers } = useTeamAccess()
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -159,7 +159,7 @@ export default function Members() {
 
   if (loading) {
     return (
-      <div className="loading-screen">
+      <div className="settings-tab-loading">
         <div className="spinner" />
         <p>팀원 목록을 불러오는 중...</p>
       </div>
@@ -171,15 +171,7 @@ export default function Members() {
   const registeredIds = memberEmployeeIds(manageableMembers)
 
   return (
-    <div className="members-page">
-      <div className="members-header">
-        <h2 className="members-title">팀원 관리</h2>
-        <p className="members-desc">
-          매니저 이름과 사번을 등록합니다.<br/>
-          레이블(디자인 / FE개발)과 색상으로 구분하며, 아바타를 클릭해 색상을 변경할 수 있습니다.
-        </p>
-      </div>
-
+    <div className="settings-tab-panel settings-members-panel">
       <div className="members-add-card">
         <input
           type="text"
@@ -209,10 +201,10 @@ export default function Members() {
         <button type="button" className="btn-primary-sm" onClick={addMember}>추가</button>
       </div>
 
-
       <p className="members-employee-summary">
         UI팀 총 {teamLeaders.length + registeredIds.length}명 - 팀장 {teamLeaders.length}명, 매니저 {registeredIds.length}명
       </p>
+
       <section className="members-leader-section">
         <div className="members-group-header">
           <span className="member-label-badge members-leader-badge">팀장</span>

@@ -54,7 +54,10 @@ export function personalMemoSchemaMigrationMessages() {
 }
 
 export async function checkPersonalMemoSchema() {
-  const { error } = await supabase.from('personal_memos').select('employee_id, pages').limit(0)
+  const { error } = await supabase
+    .from('personal_memos')
+    .select('employee_id, pages, schedules')
+    .limit(0)
   return !error
 }
 
@@ -108,9 +111,18 @@ export async function savePersonalMemoPages(employeeId, pages) {
       updatedAt: page.updatedAt || updatedAt,
     }))
 
+  const { data: existing } = await supabase
+    .from('personal_memos')
+    .select('schedules')
+    .eq('employee_id', id)
+    .maybeSingle()
+
+  const schedules = Array.isArray(existing?.schedules) ? existing.schedules : []
+
   const { error } = await supabase.from('personal_memos').upsert({
     employee_id: id,
     pages: normalized,
+    schedules,
     content: '',
     updated_at: updatedAt,
   })

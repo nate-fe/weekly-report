@@ -243,6 +243,58 @@ textarea:focus {
 }
 .btn-icon-del:hover { opacity: 1; color: var(--red); }
 
+.btn-icon-trash {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--muted);
+  padding: 6px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border-radius: var(--radius);
+  opacity: 0.72;
+  transition: opacity .15s, color .15s, background .15s;
+}
+
+.btn-icon-trash:hover:not(:disabled) {
+  opacity: 1;
+  color: var(--red);
+  background: rgba(217, 48, 37, 0.08);
+}
+
+.btn-icon-trash:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-icon-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--muted);
+  padding: 6px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border-radius: var(--radius);
+  opacity: 0.72;
+  transition: opacity .15s, color .15s, background .15s;
+}
+
+.btn-icon-edit:hover:not(:disabled) {
+  opacity: 1;
+  color: var(--nate);
+  background: rgba(26, 115, 232, 0.08);
+}
+
+.btn-icon-edit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .input-line {
   border: none;
   border-bottom: 1px solid var(--border);
@@ -1274,7 +1326,7 @@ textarea:focus {
   display: inline-block;
 }
 
-.btn-primary-sm {
+.btn-primary-sm, .btn-primary-md {
   background: var(--nate);
   color: var(--white);
   border: none;
@@ -1285,6 +1337,12 @@ textarea:focus {
   transition: background .15s;
 }
 .btn-primary-sm:hover { background: var(--nate-dark); }
+
+.btn-primary-md {
+  padding:8px 24px;
+  font-size:14px;
+  min-width:88px;
+}
 
 .empty-tasks {
   flex: 1;
@@ -1547,6 +1605,38 @@ textarea:focus {
   min-width: 0;
   overflow: auto;
   background: var(--bg);
+  position: relative;
+}
+
+.gcal-wrap {
+  position: relative;
+  min-height: 100%;
+  padding-bottom: 56px;
+}
+
+.gcal-schedule-fab {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 999px;
+  background: var(--nate);
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(0, 82, 204, 0.35);
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.gcal-schedule-fab:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0, 82, 204, 0.4);
 }
 
 .weekly-calendar-column .gcal {
@@ -2335,7 +2425,7 @@ body.weekly-resizing * {
 
 .picker-popup-portal {
   position: fixed;
-  z-index: 1000;
+  z-index: 2100;
 }
 
 .picker-hint {
@@ -2844,6 +2934,11 @@ body.weekly-resizing * {
   color: var(--nate-dark);
 }
 
+.member-label-badge.label-leader {
+  background: #2c3e50;
+  color: #fff;
+}
+
 /* ── 주간 보고 팀원 탭 ── */
 .member-tabs {
   display: flex;
@@ -3097,19 +3192,62 @@ body.weekly-resizing * {
 .gcal-days {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  min-height: 36px;
+  height: 36px;
+}
+
+.gcal-schedule-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.gcal-schedule-legend-item {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+}
+
+.gcal-schedule-legend-item.type-meeting {
+  color: #1a56c4;
+}
+
+.gcal-schedule-legend-item.type-live {
+  color: #c41a1a;
 }
 
 .gcal-day {
   border: none;
   border-right: 1px solid var(--border);
-  padding: 6px 8px 4px;
+  padding: 4px 8px 2px;
+  height: 36px;
   min-height: 36px;
+  max-height: 36px;
+  overflow: hidden;
   background: var(--white);
-  cursor: pointer;
   text-align: left;
   width: 100%;
   transition: background .12s;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 0;
+  box-sizing: border-box;
+}
+.gcal-day-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
 }
 .gcal-day:hover { background: #f0f4f8; }
 .gcal-day.in-selected:hover { background: #d4f0e4; }
@@ -3154,7 +3292,56 @@ body.weekly-resizing * {
 .gcal-day-head {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.gcal-schedule-marker {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.gcal-schedule-marker:hover .gcal-schedule-dot {
+  transform: scale(1.15);
+}
+
+.gcal-schedule-marker-dots {
+  display: inline-flex;
+  align-items: center;
   gap: 3px;
+}
+
+.gcal-schedule-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: transform .12s;
+}
+
+.gcal-schedule-dot.type-meeting {
+  background: #1a56c4;
+}
+
+.gcal-schedule-dot.type-live {
+  background: #c41a1a;
+}
+
+.gcal-schedule-marker-count {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--muted);
+  line-height: 1;
 }
 
 .gcal-meeting-check {
@@ -3176,6 +3363,386 @@ body.weekly-resizing * {
   opacity: 0.55;
 }
 
+.gcal-day-schedules {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 3px;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.gcal-schedule-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.gcal-schedule-chip.type-meeting {
+  background: #e8f0fe;
+  color: #1a56c4;
+}
+
+.gcal-schedule-chip.type-live {
+  background: #ffe8e8;
+  color: #c41a1a;
+}
+
+.gcal-schedule-more {
+  font-size: 9px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.personal-schedule-modal {
+  width: min(420px, calc(100vw - 32px));
+  background: var(--white);
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+
+.personal-schedule-modal-draggable {
+  will-change: transform;
+}
+
+.personal-schedule-modal-drag-handle {
+  margin: -4px -8px 12px;
+  padding: 4px 8px 0;
+  cursor: grab;
+  user-select: none;
+}
+
+body.modal-dragging .personal-schedule-modal-drag-handle {
+  cursor: grabbing;
+}
+
+body.modal-dragging {
+  user-select: none;
+}
+
+.personal-schedule-modal-title {
+  margin: 0 0 6px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.personal-schedule-modal-desc {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.personal-schedule-modal-drag-handle .personal-schedule-modal-desc {
+  margin-bottom: 0;
+}
+
+.personal-schedule-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.personal-schedule-type-field {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.personal-schedule-type-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.personal-schedule-type-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--white);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.personal-schedule-type-btn.active.type-meeting {
+  border-color: #1a56c4;
+  background: #e8f0fe;
+  color: #1a56c4;
+}
+
+.personal-schedule-type-btn.active.type-live {
+  border-color: #c41a1a;
+  background: #ffe8e8;
+  color: #c41a1a;
+}
+
+.personal-schedule-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.personal-schedule-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 132px;
+  gap: 12px;
+  align-items: end;
+}
+
+.personal-schedule-row .personal-schedule-field {
+  min-width: 0;
+}
+
+.personal-schedule-field-time {
+  min-width: 0;
+}
+
+.personal-schedule-row .picker {
+  width: 100%;
+}
+
+.personal-schedule-row .picker-trigger,
+.personal-schedule-row .personal-schedule-input[type="time"] {
+  width: 100%;
+  height: 36px;
+  box-sizing: border-box;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+.personal-schedule-row .picker-trigger {
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.personal-schedule-row .personal-schedule-input[type="time"] {
+  padding: 0 10px;
+}
+
+@media (max-width: 400px) {
+  .personal-schedule-row {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+}
+
+.personal-schedule-input,
+.personal-schedule-textarea {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+.personal-schedule-input:focus,
+.personal-schedule-textarea:focus {
+  border-color: var(--nate);
+}
+
+.personal-schedule-textarea {
+  resize: vertical;
+  min-height: 72px;
+}
+
+.personal-schedule-error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--red);
+}
+
+.personal-schedule-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.personal-schedule-detail-head {
+  margin-bottom: 14px;
+}
+
+.personal-schedule-detail-type {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.personal-schedule-detail-type.type-meeting {
+  background: #e8f0fe;
+  color: #1a56c4;
+}
+
+.personal-schedule-detail-type.type-live {
+  background: #ffe8e8;
+  color: #c41a1a;
+}
+
+.personal-schedule-detail-meta {
+  margin: 0 0 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.personal-schedule-detail-meta div {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.personal-schedule-detail-meta dt {
+  min-width: 36px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.personal-schedule-detail-meta dd {
+  margin: 0;
+  color: var(--text);
+}
+
+.personal-schedule-detail-memo {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bg);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.personal-schedule-detail-note {
+  margin: 0 0 16px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.personal-schedule-detail-actions {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.personal-schedule-detail-actions .personal-schedule-delete-icon {
+  margin-right: auto;
+  padding: 4px;
+}
+
+.personal-schedule-day-owner {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.personal-schedule-day-modal {
+  width: min(460px, calc(100vw - 32px));
+}
+
+.personal-schedule-day-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: min(360px, 50vh);
+  overflow-y: auto;
+}
+
+.personal-schedule-day-item {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fafbfc;
+}
+
+.personal-schedule-day-item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.personal-schedule-day-item-main:hover {
+  background: #f0f4f8;
+}
+
+.personal-schedule-day-type {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+
+.personal-schedule-day-type.type-meeting {
+  background: #e8f0fe;
+  color: #1a56c4;
+}
+
+.personal-schedule-day-type.type-live {
+  background: #ffe8e8;
+  color: #c41a1a;
+}
+
+.personal-schedule-day-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  word-break: break-word;
+}
+
+.personal-schedule-day-time {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.personal-schedule-day-item-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  border-left: 1px solid var(--border);
+  background: var(--white);
+  flex-shrink: 0;
+}
+
+.personal-schedule-day-item-actions .personal-schedule-delete-icon,
+.personal-schedule-day-item-actions .btn-icon-edit {
+  padding: 4px;
+}
+
 .gcal-day-num.is-today {
   background: #1a73e8;
   color: var(--white);
@@ -3187,6 +3754,9 @@ body.weekly-resizing * {
   position: relative;
   padding: 2px 1px 4px;
   min-height: 28px;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 
 .gcal-events-bg {
@@ -3209,6 +3779,33 @@ body.weekly-resizing * {
 
 .gcal-events-empty {
   min-height: 44px;
+}
+
+.gcal-more {
+  position: absolute;
+  bottom: 2px;
+  z-index: 2;
+  padding: 0 4px;
+  border: none;
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: right;
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.gcal-more::before {
+  content:''; display:block; width:100%; height:5px; 
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.8), transparent);
+  position:absolute; top:-5px; left:0; right:0;
+}
+
+.gcal-more:hover {
+  color: var(--nate);
 }
 
 .gcal-event {
@@ -3250,14 +3847,6 @@ body.weekly-resizing * {
 
 /* tone-* 클래스는 팝업·범례용, 달력 바는 멤버 컬러 굵은 선 */
 
-.gcal-more {
-  padding: 2px 8px 6px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--muted);
-  text-align: right;
-}
-
 .gcal-event-modal {
   background: var(--white);
   border-radius: 10px;
@@ -3266,6 +3855,68 @@ body.weekly-resizing * {
   max-width: 480px;
   width: 100%;
   text-align: left;
+}
+
+.gcal-hidden-events-modal {
+  background: var(--white);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, .18);
+  padding: 22px 24px 20px;
+  max-width: 360px;
+  width: 100%;
+  text-align: left;
+}
+
+.gcal-hidden-events-title {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.gcal-hidden-events-desc {
+  margin: 0 0 16px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.gcal-hidden-events-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.gcal-hidden-event-bar {
+  display: block;
+  width: 100%;
+  height: 20px;
+  border: none;
+  border-radius: 3px;
+  background: var(--member-color, var(--accent));
+  cursor: pointer;
+  text-align: left;
+  padding: 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, .12);
+}
+
+.gcal-hidden-event-bar:hover {
+  filter: brightness(1.06);
+}
+
+.gcal-hidden-event-bar-label {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 20px;
 }
 
 .gcal-event-modal-header {
@@ -3394,6 +4045,55 @@ body.weekly-resizing * {
   color: var(--muted);
   margin-top: 4px;
   line-height: 1.5;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+}
+
+.settings-tab {
+  position: relative;
+  padding: 10px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  text-decoration: none;
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  margin-bottom: -1px;
+  transition: color .12s, background .12s;
+}
+
+.settings-tab:hover {
+  color: var(--text);
+  background: var(--bg);
+}
+
+.settings-tab.active {
+  color: var(--nate);
+  background: var(--white);
+  border-color: var(--border);
+  border-bottom-color: var(--white);
+}
+
+.settings-tab-panel {
+  min-height: 120px;
+}
+
+.settings-tab-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 48px 16px;
+  color: var(--muted);
+  font-size: 13px;
 }
 
 .settings-card {
@@ -4510,6 +5210,286 @@ body.weekly-resizing * {
   color: var(--muted);
   margin-top: 12px;
   line-height: 1.5;
+}
+
+/* ═══════════════════════════════════════════
+   아이디어 게시판
+═══════════════════════════════════════════ */
+.idea-board-page {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  max-width: 1080px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.idea-board-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.idea-board-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.idea-board-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  max-width: 560px;
+}
+
+.idea-board-add-btn {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+.idea-board-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 280px;
+  padding: 40px 24px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+  text-align: center;
+}
+
+.idea-board-empty p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.idea-board-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+.idea-board-note {
+  position: relative;
+  min-height: 140px;
+  padding: 18px 16px 14px;
+  border-radius: 2px 2px 10px 10px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35) 0%, transparent 28%),
+    repeating-linear-gradient(
+      transparent,
+      transparent 23px,
+      rgba(0, 0, 0, 0.04) 23px,
+      rgba(0, 0, 0, 0.04) 24px
+    ),
+    var(--note-bg, #fff9c4);
+  box-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.06),
+    0 8px 18px rgba(0, 0, 0, 0.08);
+  transform: rotate(var(--note-tilt, 0deg));
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.idea-board-note:hover {
+  transform: rotate(0deg) translateY(-2px);
+  box-shadow:
+    0 2px 0 rgba(0, 0, 0, 0.06),
+    0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
+.idea-board-note-pin {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff 0%, #d32f2f 45%, #b71c1c 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+.idea-board-note-body {
+  padding-top: 10px;
+}
+
+.idea-board-note-content {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.idea-board-note-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.idea-board-note-date {
+  font-size: 11px;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.idea-board-note-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.idea-board-note:hover .idea-board-note-actions,
+.idea-board-note-actions:focus-within {
+  opacity: 1;
+}
+
+.idea-board-note-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--text-mid);
+  cursor: pointer;
+}
+
+.idea-board-note-action:hover {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--text);
+}
+
+.idea-board-note-action-danger:hover {
+  color: var(--red);
+}
+
+.idea-board-form-modal {
+  background: var(--white);
+  border-radius: 10px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  padding: 0;
+  max-width: 440px;
+  width: calc(100% - 32px);
+  text-align: left;
+  overflow: hidden;
+}
+
+.idea-board-form-modal-draggable .idea-board-form-head {
+  cursor: move;
+}
+
+.idea-board-form-head {
+  padding: 20px 22px 0;
+}
+
+.idea-board-form-title {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.idea-board-form-desc {
+  margin: 0;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.idea-board-form {
+  padding: 16px 22px 22px;
+}
+
+.idea-board-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.idea-board-form-textarea {
+  width: 100%;
+  min-height: 180px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 14px;
+  line-height: 1.6;
+  resize: vertical;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.idea-board-form-textarea:focus {
+  outline: none;
+  border-color: var(--nate);
+}
+
+.idea-board-form-error {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--red);
+}
+
+.idea-board-form-count {
+  align-self: flex-end;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.idea-board-form-count-warn {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.idea-board-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+@media (max-width: 900px) {
+  .idea-board-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .idea-board-header {
+    flex-direction: column;
+  }
+
+  .idea-board-add-btn {
+    width: 100%;
+  }
+
+  .idea-board-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .idea-board-note {
+    transform: none;
+  }
+
+  .idea-board-note-actions {
+    opacity: 1;
+  }
 }
 
 /* ═══════════════════════════════════════════

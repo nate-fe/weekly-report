@@ -1,5 +1,6 @@
 import { fmt as toDateStr, today, normalizeDateStr } from './dates'
 import { normalizeMemberColor } from './members'
+import { memberDisplayLabel } from './teamAccess'
 import { workMetaForDate } from './weeklyTask'
 import { formatTaskDisplayName, normalizeTaskNameFields } from './nateServices'
 
@@ -69,7 +70,7 @@ export function tasksToCalendarEvents(tasks, tabMembers = [], reportFrom = '', r
       taskTitle,
       assignee: assigneeName,
       memberColor: normalizeMemberColor(member?.color),
-      memberLabel: member?.label || '',
+      memberLabel: member ? memberDisplayLabel(member) : '',
       displayLabel: `[${assigneeName}] ${displayName}`,
     }
 
@@ -167,9 +168,21 @@ export function placeEventsInWeek(events, weekDays, maxLanes = 4, reportFrom = '
 
   const flat = lanes.flat()
   const visible = flat.filter(s => s.lane < maxLanes)
-  const hiddenCount = flat.filter(s => s.lane >= maxLanes).length
+  const hiddenSegments = flat.filter(s => s.lane >= maxLanes)
+  const hiddenCount = hiddenSegments.length
+  const hiddenCountByCol = weekDays.map((_, col) =>
+    hiddenSegments.filter(s => s.startCol <= col && s.endCol >= col).length
+  )
+  const hiddenSegmentsByCol = weekDays.map((_, col) =>
+    hiddenSegments.filter(s => s.startCol <= col && s.endCol >= col)
+  )
+  const segmentsByCol = weekDays.map((_, col) =>
+    flat
+      .filter(s => s.startCol <= col && s.endCol >= col)
+      .sort((a, b) => a.lane - b.lane || a.displayLabel.localeCompare(b.displayLabel, 'ko'))
+  )
 
-  return { segments: visible, hiddenCount }
+  return { segments: visible, hiddenCount, hiddenCountByCol, hiddenSegmentsByCol, segmentsByCol }
 }
 
 export function isInReportRange(dateStr, reportFrom, reportTo) {

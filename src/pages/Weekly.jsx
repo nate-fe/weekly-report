@@ -38,7 +38,14 @@ import {
 } from '../utils/weeklyTask'
 import { formatDraftSavedAt } from '../utils/weeklyDraft'
 import { labelClass } from '../utils/members'
+import { memberDisplayLabel } from '../utils/teamAccess'
 import { useTeamSettings } from '../context/TeamSettingsContext'
+import { useTeamAccess } from '../context/TeamAccessContext'
+import {
+  fetchAllTeamSchedules,
+  savePersonalSchedules,
+} from '../utils/personalSchedule'
+import { normalizeEmployeeId } from '../utils/employeeId'
 import AlertModal from '../components/AlertModal'
 import ConfirmModal from '../components/ConfirmModal'
 import WeeklyTaskCard from '../components/WeeklyTaskCard'
@@ -107,7 +114,9 @@ export default function Weekly() {
   const [prevImportTasks, setPrevImportTasks] = useState([])
   const [allWeekTasks, setAllWeekTasks] = useState([])
   const { settings: meetingSettings } = useTeamSettings()
+  const { employeeId } = useTeamAccess()
   const recordRef = useRef(null)
+  const [personalSchedules, setPersonalSchedules] = useState([])
 
   const refreshAllWeekTasks = async () => {
     try {
@@ -189,6 +198,52 @@ export default function Weekly() {
       .then(setMembers)
       .catch(e => showToast('팀원 로드 실패: ' + e.message, true))
   }, [])
+
+  // ── 팀 일정 (회의·라이브) ──
+  const refreshTeamSchedules = () =>
+    fetchAllTeamSchedules()
+      .then(setPersonalSchedules)
+      .catch(() => setPersonalSchedules([]))
+
+  useEffect(() => {
+    refreshTeamSchedules()
+  }, [])
+
+  const ownPersonalSchedules = useMemo(() => {
+    if (!employeeId) return []
+    const id = normalizeEmployeeId(employeeId)
+    return personalSchedules.filter(s => s.employeeId === id)
+  }, [personalSchedules, employeeId])
+
+  const handleSavePersonalSchedule = async (schedule) => {
+    if (!employeeId) return
+    await savePersonalSchedules(employeeId, [...ownPersonalSchedules, schedule])
+    await refreshTeamSchedules()
+    showToast('일정이 추가되었습니다')
+  }
+
+  const handleUpdatePersonalSchedule = async (schedule) => {
+    if (!employeeId) return
+    const id = normalizeEmployeeId(employeeId)
+    const existing = ownPersonalSchedules.find(s => s.id === schedule.id)
+    if (!existing) return
+    const next = ownPersonalSchedules.map(s =>
+      s.id === schedule.id ? { ...schedule, employeeId: id } : s
+    )
+    await savePersonalSchedules(employeeId, next)
+    await refreshTeamSchedules()
+    showToast('일정이 수정되었습니다')
+  }
+
+  const handleDeletePersonalSchedule = async (id) => {
+    if (!employeeId) return
+    const idNorm = normalizeEmployeeId(employeeId)
+    const target = personalSchedules.find(s => s.id === id)
+    if (!target || target.employeeId !== idNorm) return
+    await savePersonalSchedules(employeeId, ownPersonalSchedules.filter(s => s.id !== id))
+    await refreshTeamSchedules()
+    showToast('일정이 삭제되었습니다')
+  }
 
   // ── 현재 주차 업무에 있는 삭제된 팀원 탭 ──
   useEffect(() => {
@@ -510,10 +565,11 @@ export default function Weekly() {
   }
 
 
-  const calendarTasks = useMemo(
-    () => allWeekTasks.filter(t => !draftTaskIds.has(t.id)),
-    [allWeekTasks, draftTaskIds],
-  )
+  const calendarTasks = useMemo(() => {
+    const base = allWeekTasks.filter(t => !draftTaskIds.has(t.id))
+    if (activeMemberTab === 'all') return base
+    return base.filter(t => t.memberId === activeMemberTab)
+  }, [allWeekTasks, draftTaskIds, activeMemberTab])
 
   /** 선택 주(record) 기준 — 업무 목록·카운트용 */
   const weekTasks = useMemo(
@@ -817,8 +873,8 @@ export default function Weekly() {
                     {m.name}
                     {m.deleted && <span className="member-tab-deleted-badge">삭제됨</span>}
                     {!m.deleted && (
-                      <span className={`member-label-badge sm ${labelClass(m.label || 'FE개발')}`}>
-                        {m.label || 'FE개발'}
+                      <span className={`member-label-badge sm ${labelClass(memberDisplayLabel(m))}`}>
+                        {memberDisplayLabel(m)}
                       </span>
                     )}
                     <span className="member-tab-cnt">{cnt}</span>
@@ -832,10 +888,17 @@ export default function Weekly() {
                 <WeeklyCalendar
                   tasks={calendarTasks}
                   tabMembers={tabMembers}
+                  members={members}
                   reportFrom={record.from}
                   reportTo={record.to}
                   meetingSettings={meetingSettings}
                   alwaysShow
+                  employeeId={employeeId}
+                  personalSchedules={personalSchedules}
+                  canManageSchedules={!!employeeId}
+                  onSaveSchedule={handleSavePersonalSchedule}
+                  onUpdateSchedule={handleUpdatePersonalSchedule}
+                  onDeleteSchedule={handleDeletePersonalSchedule}
                 />
               </div>
 
@@ -903,7 +966,7 @@ export default function Weekly() {
                   )}
                   {activeMemberTab === 'all' && members.length === 0 && (
                     <p className="members-hint-link">
-                      <NavLink to="/members">팀원 관리</NavLink>에서 팀원을 먼저 등록해 주세요.
+                      <NavLink to="/settings/members">설정 → 팀원</NavLink>에서 팀원을 먼저 등록해 주세요.
                     </p>
                   )}
                 </div>

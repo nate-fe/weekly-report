@@ -48,6 +48,12 @@ export function isTeamLeader(member) {
   return LEADER_EMPLOYEE_IDS.has(id) || member.name === '이상원'
 }
 
+/** 주간 업무 등 UI 표시용 레이블 (팀장 → '팀장') */
+export function memberDisplayLabel(member) {
+  if (isTeamLeader(member)) return '팀장'
+  return member?.label || 'FE개발'
+}
+
 export function memberRoleHonorific(member) {
   if (!member) return '매니저님'
   if (isTeamLeader(member)) return '팀장님'

@@ -3,6 +3,7 @@ import DatePicker from './DatePicker'
 import { fmtKo } from '../utils/dates'
 import { workSummary, WORK_VIEW_GROUPS, groupWorksForView } from '../utils/weeklyTask'
 import { labelClass } from '../utils/members'
+import { memberDisplayLabel } from '../utils/teamAccess'
 import {
   NATE_PLATFORMS,
   getServicesList,
@@ -28,7 +29,7 @@ export default function WeeklyTaskCard({
   onDelete,
 }) {
   const memberName = member?.name || task.assignee?.trim() || '(담당자 없음)'
-  const memberLabel = member?.label
+  const memberLabel = member ? memberDisplayLabel(member) : ''
   const works = task.works || []
   const grouped = groupWorksForView(works, reportFrom, reportTo)
   const fields = normalizeTaskNameFields(task)

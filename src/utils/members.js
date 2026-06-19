@@ -31,7 +31,9 @@ export function memberUid() {
 }
 
 export function labelClass(label) {
-  return label === '디자인' ? 'label-designer' : 'label-fe'
+  if (label === '디자인') return 'label-designer'
+  if (label === '팀장') return 'label-leader'
+  return 'label-fe'
 }
 
 /** 아직 쓰이지 않은 색을 우선 배정, 없으면 순환 */
