@@ -266,15 +266,15 @@ export default function WeeklyCalendar({
                             <span className={`gcal-day-num ${day.isToday ? 'is-today' : ''}`}>
                               {day.day}
                             </span>
-                            {showMeeting && (
-                              <span
-                                className="gcal-meeting-check"
-                                title={meetingTooltipText(meetingSettings, day.dateStr)}
-                              >
-                                ✓
-                              </span>
-                            )}
                           </button>
+                          {showMeeting && (
+                            <span
+                              className="gcal-meeting-check"
+                              title={meetingTooltipText(meetingSettings, day.dateStr)}
+                            >
+                              ✓
+                            </span>
+                          )}
                           {daySchedules.length > 0 && (
                             <button
                               type="button"
