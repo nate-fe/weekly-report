@@ -4,7 +4,7 @@ import { useTeamAccess } from '../context/TeamAccessContext'
 import { findMemberByEmployeeId } from '../utils/teamAccess'
 
 export default function TeamAccessGate({ children }) {
-  const { loading, employeeId, members, grantAccess } = useTeamAccess()
+  const { loading, employeeId, isGuest, members, grantAccess, grantGuestAccess } = useTeamAccess()
   const [input, setInput] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -36,6 +36,11 @@ export default function TeamAccessGate({ children }) {
     }
   }
 
+  const handleGuestEnter = () => {
+    setError('')
+    grantGuestAccess()
+  }
+
   if (loading) {
     return (
       <div className="loading-screen loading-screen-full">
@@ -45,7 +50,7 @@ export default function TeamAccessGate({ children }) {
     )
   }
 
-  if (!employeeId) {
+  if (!employeeId && !isGuest) {
     return (
       <div className="team-access-page">
         <div className="team-access-card">
@@ -54,7 +59,7 @@ export default function TeamAccessGate({ children }) {
             <h1 className="team-access-title">NATE UI팀 업무 보고</h1>
           </div>
           <p className="team-access-desc">
-            UI팀 등록된 팀원만 이용할 수 있습니다. 사번을 입력해 주세요.
+            UI팀 등록된 팀원은 사번으로 입장할 수 있습니다. 조회만 필요하면 게스트로 입장해 주세요.
           </p>
           <form className="team-access-form" onSubmit={handleSubmit}>
             <label className="memo-field">
@@ -75,6 +80,21 @@ export default function TeamAccessGate({ children }) {
               {busy ? '확인 중...' : '입장'}
             </button>
           </form>
+
+          <div className="team-access-divider" aria-hidden="true">
+            <span>또는</span>
+          </div>
+
+          <button
+            type="button"
+            className="btn-outline-sm team-access-guest-btn"
+            onClick={handleGuestEnter}
+          >
+            게스트로 입장
+          </button>
+          <p className="team-access-guest-note">
+            게스트는 주간 업무·업무 검색 조회만 할 수 있습니다.
+          </p>
         </div>
 
         <AlertModal
@@ -90,7 +110,9 @@ export default function TeamAccessGate({ children }) {
   const member = findMemberByEmployeeId(members, employeeId)
   return (
     <>
-      {member && (
+      {isGuest ? (
+        <span className="sr-only">게스트 모드</span>
+      ) : member && (
         <span className="sr-only">접속 사번 {employeeId}, {member.name}</span>
       )}
       {children}

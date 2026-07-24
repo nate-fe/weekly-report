@@ -114,7 +114,7 @@ export default function Weekly() {
   const [prevImportTasks, setPrevImportTasks] = useState([])
   const [allWeekTasks, setAllWeekTasks] = useState([])
   const { settings: meetingSettings } = useTeamSettings()
-  const { employeeId } = useTeamAccess()
+  const { employeeId, isGuest } = useTeamAccess()
   const recordRef = useRef(null)
   const [personalSchedules, setPersonalSchedules] = useState([])
 
@@ -386,7 +386,7 @@ export default function Weekly() {
 
   // ── 주 선택 (미저장 시 자동 임시 저장) ──
   const selectWeek = async (week) => {
-    if (selectedKey && recordRef.current && !saved) {
+    if (!isGuest && selectedKey && recordRef.current && !saved) {
       try {
         await upsertWeeklyDraft(selectedKey, recordRef.current)
       } catch {
@@ -587,7 +587,7 @@ export default function Weekly() {
     ? `${weekTasks.length}건`
     : `${filteredTasks.length}건`
 
-  const showSaveActions = activeMemberTab !== 'all' && (record?.tasks || []).some(
+  const showSaveActions = !isGuest && activeMemberTab !== 'all' && (record?.tasks || []).some(
     t => t.memberId === activeMemberTab && editingTaskIds.has(t.id)
   )
   const updateTask = (id, patch) => updateTasks(tasks =>
@@ -840,9 +840,9 @@ export default function Weekly() {
               </div>
               <div className="weekly-form-actions">
                 <div className="period-inputs">
-                  <input type="date" value={record.from} onChange={e => update({ from: e.target.value })} className="date-input-sm" />
+                  <input type="date" value={record.from} onChange={e => update({ from: e.target.value })} className="date-input-sm" disabled={isGuest} readOnly={isGuest} />
                   <span className="sep">~</span>
-                  <input type="date" value={record.to}   onChange={e => update({ to: e.target.value })}   className="date-input-sm" />
+                  <input type="date" value={record.to}   onChange={e => update({ to: e.target.value })}   className="date-input-sm" disabled={isGuest} readOnly={isGuest} />
                 </div>
                 <button className="btn-outline-sm" onClick={copyMarkdown}>마크다운 복사</button>
                 <button className="btn-outline-sm" onClick={handleExcel}>📊 엑셀</button>
@@ -895,7 +895,7 @@ export default function Weekly() {
                   alwaysShow
                   employeeId={employeeId}
                   personalSchedules={personalSchedules}
-                  canManageSchedules={!!employeeId}
+                  canManageSchedules={!!employeeId && !isGuest}
                   onSaveSchedule={handleSavePersonalSchedule}
                   onUpdateSchedule={handleUpdatePersonalSchedule}
                   onDeleteSchedule={handleDeletePersonalSchedule}
@@ -936,7 +936,7 @@ export default function Weekly() {
                   <div className="weekly-list-items">
                     {listTasks.map(task => {
                       const member = tabMembers.find(m => m.id === task.memberId)
-                      const readOnly = activeMemberTab === 'all'
+                      const readOnly = isGuest || activeMemberTab === 'all'
                       return (
                         <WeeklyTaskCard
                           key={`${activeMemberTab}-${task.id}`}
@@ -959,7 +959,7 @@ export default function Weekly() {
                     })}
                   </div>
 
-                  {activeMemberTab !== 'all' && !deletedTabMembers.some(m => m.id === activeMemberTab) && (
+                  {activeMemberTab !== 'all' && !isGuest && !deletedTabMembers.some(m => m.id === activeMemberTab) && (
                     <button type="button" className="btn-add-dashed" onClick={addTask}>
                       + 업무 추가
                     </button>

@@ -7,7 +7,7 @@ import { normalizeTeamMeetingSettings } from '../../utils/teamMeeting'
 import { useTeamSettings } from '../../context/TeamSettingsContext'
 import AlertModal from '../AlertModal'
 
-export default function SettingsServicesSection() {
+export default function SettingsServicesSection({ readOnly = false }) {
   const { settings, loading, saveSettings } = useTeamSettings()
   const [localSettings, setLocalSettings] = useState(() => normalizeTeamMeetingSettings({}))
   const [saving, setSaving] = useState(false)
@@ -96,7 +96,9 @@ export default function SettingsServicesSection() {
   }
 
   return (
-    <div className="settings-tab-panel">
+    <>
+      <fieldset disabled={readOnly} className="settings-readonly-fieldset">
+        <div className="settings-tab-panel">
       <section className="settings-card">
         <h3 className="settings-card-title">서비스 목록</h3>
         <p className="settings-card-desc">
@@ -139,6 +141,9 @@ export default function SettingsServicesSection() {
         </div>
       </section>
 
+        </div>
+      </fieldset>
+
       {toast && (
         <div className={`toast show ${toast.err ? 'toast-error' : ''}`}>
           {toast.msg}
@@ -151,6 +156,6 @@ export default function SettingsServicesSection() {
         messages={alert?.messages ?? []}
         onClose={() => setAlert(null)}
       />
-    </div>
+    </>
   )
 }

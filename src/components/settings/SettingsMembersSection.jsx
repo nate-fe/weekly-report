@@ -25,7 +25,7 @@ import { useTeamAccess } from '../../context/TeamAccessContext'
 import AlertModal from '../AlertModal'
 import ConfirmModal from '../ConfirmModal'
 
-export default function SettingsMembersSection() {
+export default function SettingsMembersSection({ readOnly = false }) {
   const { refreshMembers } = useTeamAccess()
   const [members, setMembers] = useState([])
   const [loading, setLoading] = useState(true)
@@ -171,7 +171,9 @@ export default function SettingsMembersSection() {
   const registeredIds = memberEmployeeIds(manageableMembers)
 
   return (
-    <div className="settings-tab-panel settings-members-panel">
+    <>
+      <fieldset disabled={readOnly} className="settings-readonly-fieldset">
+        <div className="settings-tab-panel settings-members-panel">
       <div className="members-add-card">
         <input
           type="text"
@@ -311,6 +313,9 @@ export default function SettingsMembersSection() {
         )
       })}
 
+        </div>
+      </fieldset>
+
       {toast && (
         <div className={`toast show ${toast.err ? 'toast-error' : ''}`}>{toast.msg}</div>
       )}
@@ -329,6 +334,6 @@ export default function SettingsMembersSection() {
         messages={alert?.messages ?? []}
         onClose={() => setAlert(null)}
       />
-    </div>
+    </>
   )
 }

@@ -14,7 +14,7 @@ import { fmtKo } from '../../utils/dates'
 import DatePicker from '../DatePicker'
 import AlertModal from '../AlertModal'
 
-export default function SettingsMeetingSection() {
+export default function SettingsMeetingSection({ readOnly = false }) {
   const { settings, loading, saveSettings } = useTeamSettings()
   const [localSettings, setLocalSettings] = useState(() => normalizeTeamMeetingSettings({}))
   const [saving, setSaving] = useState(false)
@@ -115,7 +115,9 @@ export default function SettingsMeetingSection() {
   }
 
   return (
-    <div className="settings-tab-panel">
+    <>
+      <fieldset disabled={readOnly} className="settings-readonly-fieldset">
+        <div className="settings-tab-panel">
       <section className="settings-card">
         <h3 className="settings-card-title">기본 주간회의</h3>
         <div className="settings-fields">
@@ -215,6 +217,9 @@ export default function SettingsMeetingSection() {
         </div>
       </section>
 
+        </div>
+      </fieldset>
+
       {toast && (
         <div className={`toast show ${toast.err ? 'toast-error' : ''}`}>
           {toast.msg}
@@ -227,6 +232,6 @@ export default function SettingsMeetingSection() {
         messages={alert?.messages ?? []}
         onClose={() => setAlert(null)}
       />
-    </div>
+    </>
   )
 }

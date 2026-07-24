@@ -1,4 +1,5 @@
 import { NavLink, Navigate, useParams } from 'react-router-dom'
+import { useTeamAccess } from '../context/TeamAccessContext'
 import SettingsMembersSection from '../components/settings/SettingsMembersSection'
 import SettingsMeetingSection from '../components/settings/SettingsMeetingSection'
 import SettingsServicesSection from '../components/settings/SettingsServicesSection'
@@ -25,6 +26,7 @@ const TAB_IDS = new Set(SETTINGS_TABS.map(t => t.id))
 
 export default function Settings() {
   const { tab } = useParams()
+  const { isGuest } = useTeamAccess()
   const activeTab = TAB_IDS.has(tab) ? tab : null
 
   if (!activeTab) {
@@ -52,9 +54,13 @@ export default function Settings() {
         ))}
       </nav>
 
-      {activeTab === 'members' && <SettingsMembersSection />}
-      {activeTab === 'meeting' && <SettingsMeetingSection />}
-      {activeTab === 'services' && <SettingsServicesSection />}
+      {isGuest && (
+        <p className="settings-guest-notice">게스트 모드에서는 설정을 변경할 수 없습니다.</p>
+      )}
+
+      {activeTab === 'members' && <SettingsMembersSection readOnly={isGuest} />}
+      {activeTab === 'meeting' && <SettingsMeetingSection readOnly={isGuest} />}
+      {activeTab === 'services' && <SettingsServicesSection readOnly={isGuest} />}
     </div>
   )
 }

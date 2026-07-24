@@ -14,7 +14,7 @@ import { useTeamAccess } from '../context/TeamAccessContext'
 import { findMemberByEmployeeId } from '../utils/teamAccess'
 
 export default function PersonalMemo() {
-  const { employeeId, members } = useTeamAccess()
+  const { employeeId, members, isGuest } = useTeamAccess()
   const member = findMemberByEmployeeId(members, employeeId)
 
   const [loading, setLoading] = useState(true)
@@ -158,6 +158,20 @@ export default function PersonalMemo() {
       <div className="loading-screen">
         <div className="spinner" />
         <p>불러오는 중...</p>
+      </div>
+    )
+  }
+
+  if (isGuest) {
+    return (
+      <div className="memo-page">
+        <div className="memo-header">
+          <h2 className="memo-title">개인 메모</h2>
+          <p className="memo-desc">게스트 모드에서는 개인 메모를 이용할 수 없습니다.</p>
+        </div>
+        <div className="guest-readonly-panel">
+          <p>팀원 사번으로 입장하면 개인 메모를 작성·저장할 수 있습니다.</p>
+        </div>
       </div>
     )
   }

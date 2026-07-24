@@ -10,13 +10,21 @@ import { useTeamAccess } from './context/TeamAccessContext'
 import { findMemberByEmployeeId, memberGreeting } from './utils/teamAccess'
 
 function AppShell() {
-  const { employeeId, members } = useTeamAccess()
+  const { employeeId, members, isGuest, clearAccess } = useTeamAccess()
   const member = findMemberByEmployeeId(members, employeeId)
   const location = useLocation()
   const settingsActive = location.pathname.startsWith('/settings')
 
   return (
-    <div className="app">
+    <div className={`app ${isGuest ? 'app-guest' : ''}`}>
+      {isGuest && (
+        <div className="guest-mode-banner" role="status">
+          <span>게스트 모드 · 조회만 가능합니다.</span>
+          <button type="button" className="guest-mode-banner-btn" onClick={clearAccess}>
+            팀원 입장
+          </button>
+        </div>
+      )}
       <header className="app-header">
         <div className="header-brand">
           <span className="header-icon">📋</span>
@@ -54,7 +62,12 @@ function AppShell() {
             아이디어 게시판
           </NavLink>
           <div className="header-access">
-            {memberGreeting(member)}
+            {isGuest ? (
+              <p className="header-greeting">
+                <span className="header-greeting-strong">게스트</span>
+                {' '}님, 환영합니다.
+              </p>
+            ) : memberGreeting(member)}
           </div>
         </nav>
       </header>

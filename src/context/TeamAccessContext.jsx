@@ -1,9 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { fetchMembers } from '../utils/storage'
 import {
+  clearTeamAccess,
   clearTeamAccessEmployeeId,
+  clearGuestAccess,
   getStoredTeamAccessEmployeeId,
+  isGuestAccessStored,
   isTeamEmployeeIdAllowed,
+  storeGuestAccess,
   storeTeamAccessEmployeeId,
   verifyTeamAccessInput,
 } from '../utils/teamAccess'
@@ -12,7 +16,10 @@ const TeamAccessContext = createContext(null)
 
 export function TeamAccessProvider({ children }) {
   const [loading, setLoading] = useState(true)
-  const [employeeId, setEmployeeId] = useState(() => getStoredTeamAccessEmployeeId())
+  const [isGuest, setIsGuest] = useState(() => isGuestAccessStored())
+  const [employeeId, setEmployeeId] = useState(() => (
+    isGuestAccessStored() ? '' : getStoredTeamAccessEmployeeId()
+  ))
   const [members, setMembers] = useState([])
 
   const refreshMembers = useCallback(async () => {
@@ -29,10 +36,15 @@ export function TeamAccessProvider({ children }) {
         const data = await refreshMembers()
         if (cancelled) return
 
-        const stored = getStoredTeamAccessEmployeeId()
-        if (stored && !isTeamEmployeeIdAllowed(stored, data)) {
-          clearTeamAccessEmployeeId()
+        if (isGuestAccessStored()) {
+          setIsGuest(true)
           setEmployeeId('')
+        } else {
+          const stored = getStoredTeamAccessEmployeeId()
+          if (stored && !isTeamEmployeeIdAllowed(stored, data)) {
+            clearTeamAccessEmployeeId()
+            setEmployeeId('')
+          }
         }
       } catch {
         if (!cancelled) setMembers([])
@@ -50,18 +62,36 @@ export function TeamAccessProvider({ children }) {
     const result = verifyTeamAccessInput(input, data)
     if (!result.ok) return result
 
+    clearGuestAccess()
     const stored = storeTeamAccessEmployeeId(result.employeeId)
+    setIsGuest(false)
     setEmployeeId(stored)
     return { ok: true, employeeId: stored }
   }, [members, refreshMembers])
 
+  const grantGuestAccess = useCallback(() => {
+    storeGuestAccess()
+    setIsGuest(true)
+    setEmployeeId('')
+    return { ok: true }
+  }, [])
+
+  const clearAccess = useCallback(() => {
+    clearTeamAccess()
+    setIsGuest(false)
+    setEmployeeId('')
+  }, [])
+
   const value = useMemo(() => ({
     loading,
+    isGuest,
     employeeId,
     members,
     grantAccess,
+    grantGuestAccess,
+    clearAccess,
     refreshMembers,
-  }), [loading, employeeId, members, grantAccess, refreshMembers])
+  }), [loading, isGuest, employeeId, members, grantAccess, grantGuestAccess, clearAccess, refreshMembers])
 
   return (
     <TeamAccessContext.Provider value={value}>

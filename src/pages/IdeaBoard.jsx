@@ -27,7 +27,7 @@ function formatNoteDate(iso) {
 }
 
 export default function IdeaBoard() {
-  const { employeeId } = useTeamAccess()
+  const { employeeId, isGuest } = useTeamAccess()
   const [loading, setLoading] = useState(true)
   const [ideas, setIdeas] = useState([])
   const [formOpen, setFormOpen] = useState(false)
@@ -166,9 +166,11 @@ export default function IdeaBoard() {
             익명으로 아이디어를 남기고 팀과 공유해 보세요. 수정·삭제는 본인이 작성한 글만 가능합니다.
           </p>
         </div>
-        <button type="button" className="btn-primary-sm idea-board-add-btn" onClick={openAdd}>
-          + 아이디어 남기기
-        </button>
+        {!isGuest && (
+          <button type="button" className="btn-primary-sm idea-board-add-btn" onClick={openAdd}>
+            + 아이디어 남기기
+          </button>
+        )}
       </div>
 
       {ideas.length === 0 ? (

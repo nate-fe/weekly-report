@@ -6,6 +6,20 @@ import {
 } from './employeeId'
 
 const STORAGE_KEY = 'weekly-report-team-access-employee-id'
+const GUEST_STORAGE_KEY = 'weekly-report-team-access-guest'
+
+export function isGuestAccessStored() {
+  return localStorage.getItem(GUEST_STORAGE_KEY) === '1'
+}
+
+export function storeGuestAccess() {
+  localStorage.setItem(GUEST_STORAGE_KEY, '1')
+  localStorage.removeItem(STORAGE_KEY)
+}
+
+export function clearGuestAccess() {
+  localStorage.removeItem(GUEST_STORAGE_KEY)
+}
 
 export function normalizeMemberName(value) {
   return (value || '').trim()
@@ -19,12 +33,18 @@ export function getStoredTeamAccessEmployeeId() {
 export function storeTeamAccessEmployeeId(employeeId) {
   const id = normalizeEmployeeId(employeeId)
   if (!isValidEmployeeId(id)) return ''
+  clearGuestAccess()
   localStorage.setItem(STORAGE_KEY, id)
   return id
 }
 
 export function clearTeamAccessEmployeeId() {
   localStorage.removeItem(STORAGE_KEY)
+}
+
+export function clearTeamAccess() {
+  clearTeamAccessEmployeeId()
+  clearGuestAccess()
 }
 
 export function memberEmployeeIds(members) {
