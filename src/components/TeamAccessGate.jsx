@@ -59,7 +59,7 @@ export default function TeamAccessGate({ children }) {
             <h1 className="team-access-title">NATE UI팀 업무 보고</h1>
           </div>
           <p className="team-access-desc">
-            UI팀 등록된 팀원은 사번으로 입장할 수 있습니다. 조회만 필요하면 게스트로 입장해 주세요.
+            UI팀 등록된 팀원은 사번으로 입장할 수 있습니다. <br/>조회만 필요하면 게스트로 입장해 주세요.
           </p>
           <form className="team-access-form" onSubmit={handleSubmit}>
             <label className="memo-field">
